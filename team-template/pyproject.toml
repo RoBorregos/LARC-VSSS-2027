@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vsss-team"
+version = "0.1.0"
+description = "Team strategies and VSSS simulation"
+requires-python = ">=3.10"
+dependencies = [
+    # Our modified rSim (omni robots). It is installed BEFORE, by install.sh,
+    # because it must be compiled or come from one of our wheels. No version
+    # number on purpose: install.sh checks it.
+    "rc-robosim",
+    # Unmodified rSoccer, pinned to a commit so it works the same for everyone.
+    "rsoccer-gym @ git+https://github.com/robocin/rSoccer@3adf7c3e89fe6d1b47431ee4099dc5ee89420415",
+    "gymnasium>=1.0",
+    "pygame>=2.6",
+    "numpy",
+]
+
+[tool.setuptools]
+packages = ["team_vsss", "team_vsss.strategies"]

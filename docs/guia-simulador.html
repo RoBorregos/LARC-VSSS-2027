@@ -1,0 +1,1386 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Guía del Simulador VSSS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #fbf8f2; --bg-alt: #f3eee4; --text: #2a2620; --muted: #6b6357; --rule: #ddd4c4;
+  --accent: #7a2e1f; --link: #8a3a22; --code-bg: #f1ebe0; --code-text: #2d2a26;
+  --note: #2f5d7c; --note-bg: #e8f0f5; --warn: #9a5b00; --warn-bg: #fbf0dc;
+  --ok: #3d6b35; --ok-bg: #e7f0e3; --ex: #5b3f8a; --ex-bg: #eee8f6;
+  --q: #8a3a22; --q-bg: #f7ebe3;
+  --svg-stroke: #3b352d; --svg-fill: #ffffff; --svg-fill2: #efe7d8;
+  --svg-blue: #2b6cb0; --svg-yellow: #c99a06; --svg-red: #b4432c; --svg-green: #3d7a3a;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1c1a17; --bg-alt: #24211d; --text: #e9e3d8; --muted: #a59c8d; --rule: #3d3830;
+    --accent: #e09a7f; --link: #eaa98e; --code-bg: #2a2622; --code-text: #ece5d9;
+    --note: #8ec0e0; --note-bg: #1f2d36; --warn: #e8b660; --warn-bg: #352b1a;
+    --ok: #9fcf93; --ok-bg: #1f2e1d; --ex: #c4aef0; --ex-bg: #2a2336; --q: #eaa98e; --q-bg: #33261f;
+    --svg-stroke: #d8d0c2; --svg-fill: #26231f; --svg-fill2: #332e27;
+    --svg-blue: #6aa6e8; --svg-yellow: #e6c14a; --svg-red: #e8826b; --svg-green: #86c07f;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1c1a17; --bg-alt: #24211d; --text: #e9e3d8; --muted: #a59c8d; --rule: #3d3830;
+  --accent: #e09a7f; --link: #eaa98e; --code-bg: #2a2622; --code-text: #ece5d9;
+  --note: #8ec0e0; --note-bg: #1f2d36; --warn: #e8b660; --warn-bg: #352b1a;
+  --ok: #9fcf93; --ok-bg: #1f2e1d; --ex: #c4aef0; --ex-bg: #2a2336; --q: #eaa98e; --q-bg: #33261f;
+  --svg-stroke: #d8d0c2; --svg-fill: #26231f; --svg-fill2: #332e27;
+  --svg-blue: #6aa6e8; --svg-yellow: #e6c14a; --svg-red: #e8826b; --svg-green: #86c07f;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--text);
+  font-family: "EB Garamond", Garamond, "Garamond Premier Pro", Georgia, serif;
+  font-size: 20px; line-height: 1.62; font-feature-settings: "kern", "liga", "onum"; -webkit-font-smoothing: antialiased; }
+.layout { display: flex; justify-content: center; gap: 3rem; padding: 0 16px; }
+nav.toc { position: sticky; top: 0; align-self: flex-start; height: 100vh; overflow-y: auto;
+  width: 16rem; flex-shrink: 0; padding: 2.5rem 0 2rem; font-size: 0.86rem; line-height: 1.4; }
+nav.toc .toc-title { font-variant: small-caps; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 0.6rem; font-size: 0.95rem; }
+nav.toc ol { list-style: none; margin: 0; padding: 0; }
+nav.toc li { margin: 0.32rem 0; }
+nav.toc li li { margin: 0.18rem 0 0.18rem 0.9rem; font-size: 0.92em; }
+nav.toc a { color: var(--text); text-decoration: none; }
+nav.toc a:hover { color: var(--accent); }
+nav.toc .num { color: var(--accent); font-weight: 600; margin-right: 0.35rem; }
+main { max-width: 44rem; width: 100%; padding: 2.5rem 0 6rem; min-width: 0; }
+@media (max-width: 1100px) { nav.toc { display: none; } .layout { gap: 0; } }
+@media (max-width: 600px) { body { font-size: 18px; } }
+header.cover { border-bottom: 1px solid var(--rule); padding-bottom: 2rem; margin-bottom: 2.5rem; }
+.kicker { font-variant: small-caps; letter-spacing: 0.12em; color: var(--accent); font-size: 1rem; }
+h1 { font-size: 2.6rem; line-height: 1.1; margin: 0.4rem 0 0.8rem; font-weight: 600; }
+.subtitle { font-size: 1.22rem; font-style: italic; color: var(--muted); margin: 0; }
+h2 { font-size: 2rem; font-weight: 600; margin: 4.5rem 0 1rem; line-height: 1.15; padding-top: 1.2rem; border-top: 2px solid var(--text); }
+h2 .num { color: var(--accent); margin-right: 0.5rem; }
+h3 { font-size: 1.4rem; font-weight: 600; margin: 2.4rem 0 0.6rem; line-height: 1.25; }
+h4 { font-size: 1.1rem; font-variant: small-caps; letter-spacing: 0.05em; margin: 1.8rem 0 0.4rem; color: var(--muted); font-weight: 600; }
+p { margin: 0 0 1rem; hyphens: auto; }
+a { color: var(--link); text-underline-offset: 2px; }
+strong { font-weight: 600; }
+ul, ol { padding-left: 1.4rem; margin: 0 0 1rem; }
+li { margin: 0.25rem 0; }
+hr { border: 0; border-top: 1px solid var(--rule); margin: 2.5rem 0; }
+code, pre, kbd { font-family: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace; }
+code { font-size: 0.78em; background: var(--code-bg); color: var(--code-text); padding: 0.08em 0.32em; border-radius: 3px; overflow-wrap: anywhere; }
+pre { background: var(--code-bg); color: var(--code-text); font-size: 0.74rem; line-height: 1.55; padding: 1rem 1.1rem; border-radius: 6px; overflow-x: auto; margin: 0 0 1.2rem; border: 1px solid var(--rule); }
+pre code { background: none; padding: 0; font-size: inherit; overflow-wrap: normal; }
+pre .c { color: var(--muted); font-style: italic; }
+pre .q { color: var(--q); font-weight: 600; }
+pre .add { color: var(--ok); }
+pre .hl { color: var(--accent); font-weight: 600; }
+.file { font-family: "JetBrains Mono", monospace; font-size: 0.7rem; color: var(--muted); margin: 1.2rem 0 0.25rem; }
+.file + pre { margin-top: 0; }
+kbd { font-size: 0.75em; border: 1px solid var(--rule); border-bottom-width: 2px; border-radius: 4px; padding: 0.05em 0.35em; background: var(--bg-alt); }
+table { border-collapse: collapse; width: 100%; margin: 0.5rem 0 1.4rem; font-size: 0.9rem; line-height: 1.45; }
+.table-wrap { overflow-x: auto; }
+th, td { text-align: left; padding: 0.45rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-variant: small-caps; letter-spacing: 0.04em; font-weight: 600; border-bottom: 2px solid var(--text); }
+.callout { border-left: 4px solid; border-radius: 0 6px 6px 0; padding: 0.8rem 1.1rem 0.3rem; margin: 1.2rem 0 1.5rem; font-size: 0.95rem; }
+.callout .lbl { font-variant: small-caps; letter-spacing: 0.08em; font-weight: 700; display: block; margin-bottom: 0.2rem; }
+.callout.note { border-color: var(--note); background: var(--note-bg); } .callout.note .lbl { color: var(--note); }
+.callout.warn { border-color: var(--warn); background: var(--warn-bg); } .callout.warn .lbl { color: var(--warn); }
+.callout.ok { border-color: var(--ok); background: var(--ok-bg); } .callout.ok .lbl { color: var(--ok); }
+.callout.ex { border-color: var(--ex); background: var(--ex-bg); } .callout.ex .lbl { color: var(--ex); }
+.question { border: 1px solid var(--q); border-radius: 8px; background: var(--q-bg); margin: 1.2rem 0 1.5rem; padding: 0.75rem 1rem 0.5rem; font-size: 0.95rem; }
+.question .qhead { font-weight: 600; color: var(--q); margin-bottom: 0.3rem; }
+.question .qhead .where { font-family: "JetBrains Mono", monospace; font-size: 0.68rem; font-weight: 400; color: var(--muted); margin-left: 0.4rem; }
+.question details { margin-top: 0.3rem; }
+.question summary { cursor: pointer; color: var(--q); font-variant: small-caps; letter-spacing: 0.06em; font-weight: 600; margin-bottom: 0.4rem; }
+.question details[open] summary { margin-bottom: 0.6rem; }
+.question pre { font-size: 0.7rem; }
+figure { margin: 1.6rem 0 2rem; }
+figure svg, figure img { display: block; width: 100%; height: auto; }
+figure img { border: 1px solid var(--rule); border-radius: 6px; }
+figcaption { font-size: 0.88rem; color: var(--muted); font-style: italic; margin-top: 0.5rem; text-align: center; line-height: 1.4; }
+svg text { font-family: "EB Garamond", Garamond, Georgia, serif; fill: var(--text); }
+svg .mono { font-family: "JetBrains Mono", monospace; }
+svg .stroke { stroke: var(--svg-stroke); fill: none; }
+svg .box { stroke: var(--svg-stroke); fill: var(--svg-fill); }
+svg .box2 { stroke: var(--svg-stroke); fill: var(--svg-fill2); }
+svg .muted { fill: var(--muted); }
+.math { font-style: italic; white-space: nowrap; }
+.eq { text-align: center; margin: 1rem 0 1.2rem; font-size: 1.08rem; overflow-x: auto; }
+.small { font-size: 0.88rem; color: var(--muted); }
+.badge { display: inline-block; font-family: "JetBrains Mono", monospace; font-size: 0.62rem; font-weight: 600; padding: 0.15em 0.55em; border-radius: 99px; vertical-align: 0.2em; margin-left: 0.3rem; text-transform: uppercase; }
+.badge.ok { background: var(--ok-bg); color: var(--ok); border: 1px solid var(--ok); }
+.badge.no { background: var(--warn-bg); color: var(--warn); border: 1px solid var(--warn); }
+.map { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: 0.8rem; margin: 1rem 0 1.6rem; }
+.map a { display: block; text-decoration: none; color: var(--text); border: 1px solid var(--rule); border-radius: 8px; padding: 0.8rem 0.95rem; background: var(--bg-alt); font-size: 0.92rem; line-height: 1.4; }
+.map a:hover { border-color: var(--accent); }
+.map b { display: block; color: var(--accent); font-weight: 600; margin-bottom: 0.2rem; font-size: 1rem; }
+dl.gloss dt { font-weight: 600; margin-top: 0.8rem; }
+dl.gloss dd { margin: 0.1rem 0 0 1.2rem; }
+.steps > li { margin: 0.7rem 0; }
+.theme-toggle { position: fixed; top: 0.8rem; right: 0.8rem; background: var(--bg-alt); color: var(--text); border: 1px solid var(--rule); border-radius: 99px; font: inherit; font-size: 0.8rem; padding: 0.2rem 0.75rem; cursor: pointer; z-index: 5; }
+.qindex td:first-child { white-space: nowrap; }
+</style>
+</head>
+<body>
+<button class="theme-toggle" id="themeToggle" type="button" aria-label="Cambiar tema claro u oscuro">◐ tema</button>
+<div class="layout">
+
+<nav class="toc" aria-label="Índice">
+  <div class="toc-title">Índice</div>
+  <ol>
+    <li><a href="#inicio"><span class="num">0</span>Sobre esta guía</a></li>
+    <li><a href="#panorama"><span class="num">1</span>Qué es el simulador</a></li>
+    <li><a href="#instalar"><span class="num">2</span>Instalación</a>
+      <ol>
+        <li><a href="#inst-mac">macOS</a></li>
+        <li><a href="#inst-wsl">Windows (WSL)</a></li>
+        <li><a href="#inst-linux">Linux (Ubuntu)</a></li>
+        <li><a href="#inst-usar">Usarlo día a día</a></li>
+      </ol>
+    </li>
+    <li><a href="#conceptos"><span class="num">3</span>Conceptos antes del código</a>
+      <ol>
+        <li><a href="#cancha">La cancha y las unidades</a></li>
+        <li><a href="#robot-omni">El robot omnidireccional</a></li>
+        <li><a href="#python">Python que aparece en el código</a></li>
+      </ol>
+    </li>
+    <li><a href="#archivos"><span class="num">4</span>Recorrido por los archivos</a>
+      <ol>
+        <li><a href="#f-pyproject">pyproject.toml</a></li>
+        <li><a href="#f-install">install.sh</a></li>
+        <li><a href="#f-robot">robot.py</a></li>
+        <li><a href="#f-simulator">simulator.py</a></li>
+        <li><a href="#f-world">world.py</a></li>
+        <li><a href="#f-match">match.py</a></li>
+        <li><a href="#f-strategies">strategies/</a></li>
+        <li><a href="#f-view">scripts/view_match.py</a></li>
+        <li><a href="#f-check">scripts/check_omni.py</a></li>
+      </ol>
+    </li>
+    <li><a href="#rsim"><span class="num">5</span>Modificar rSim</a>
+      <ol>
+        <li><a href="#rsim-que">Qué es y dónde está</a></li>
+        <li><a href="#cpp">Leer C++ sin saber C++</a></li>
+        <li><a href="#rsim-archivos">Los archivos de rSim</a></li>
+        <li><a href="#rsim-flujo">El proceso, paso a paso</a></li>
+        <li><a href="#rsim-ejemplo">Ejemplo completo</a></li>
+      </ol>
+    </li>
+    <li><a href="#equipo"><span class="num">6</span>Trabajar en equipo con git</a></li>
+    <li><a href="#problemas"><span class="num">7</span>Problemas frecuentes</a></li>
+    <li><a href="#preguntas"><span class="num">8</span>Índice de preguntas</a></li>
+    <li><a href="#glosario"><span class="num">9</span>Glosario</a></li>
+  </ol>
+</nav>
+
+<main>
+<header class="cover">
+  <div class="kicker">Documentación oficial · LARC VSSS 2027</div>
+  <h1>Guía del simulador del equipo</h1>
+  <p class="subtitle">Cómo instalarlo, cómo funciona cada archivo de <code>team-template</code> y cómo modificar el simulador físico rSim. Escrita para quien empieza a programar.</p>
+</header>
+
+<!-- ================================================================== -->
+<section id="inicio">
+<h2><span class="num">0</span>Sobre esta guía</h2>
+
+<p>El equipo usa un <strong>simulador</strong> para ver en pantalla partidos de VSSS (IEEE Very Small Size Soccer) con robots como los nuestros: omnidireccionales, de tres ruedas. Sirve para probar estrategias sin cargar baterías, sin armar la cancha y sin riesgo de romper nada.</p>
+<p>Esta guía explica tres cosas:</p>
+<ol>
+  <li><strong>Cómo instalarlo</strong> en macOS, en Windows (mediante WSL) y en Linux (capítulo 2).</li>
+  <li><strong>Cómo funciona cada archivo</strong> de la carpeta <code>team-template</code>, línea por línea cuando hace falta (capítulos 3 y 4).</li>
+  <li><strong>Cómo modificar rSim</strong>, el motor de física escrito en C++, y repartir esos cambios al equipo (capítulos 5 y 6).</li>
+</ol>
+
+<h3>A quién va dirigida</h3>
+<p>A cualquier integrante del equipo que sepa lo básico de Python: variables, <code>if</code>, <code>for</code>, funciones y listas. Todo lo demás (clases, herencia, terminal, git, entornos virtuales, C++) se explica cuando aparece. No hace falta saber física: los conceptos necesarios están en el capítulo 3.</p>
+
+<h3>Cómo leerla</h3>
+<div class="map">
+  <a href="#instalar"><b>Instalar y ver un partido</b>Capítulo 2. Unos minutos de lectura.</a>
+  <a href="#archivos"><b>Entender el código</b>Capítulos 3 y 4, en orden. Es la parte más larga.</a>
+  <a href="#rsim"><b>Cambiar el robot o la física</b>Capítulo 5, después de leer el 3.</a>
+  <a href="#preguntas"><b>Responder las preguntas del código</b>Capítulo 8: todas las preguntas con enlace a su respuesta.</a>
+</div>
+
+<h3>Las preguntas del código</h3>
+<p>Los archivos de <code>team-template</code> tienen <strong>preguntas escritas como comentarios</strong>, por ejemplo <code># How does this work?</code>. Están ahí a propósito: son ejercicios para entender el código. En esta guía, cada pregunta aparece en un recuadro como este:</p>
+<div class="question">
+  <div class="qhead">¿Ejemplo de pregunta? <span class="where">archivo.py · línea N</span></div>
+  <details><summary>Ver respuesta</summary><p>La respuesta está escondida para poder intentar responderla antes de leerla. Lo recomendable: leer el código, escribir una respuesta propia y después comparar.</p></details>
+</div>
+
+<h3>Otras convenciones</h3>
+<div class="callout note"><span class="lbl">Nota</span><p>Información de apoyo o un “por qué”.</p></div>
+<div class="callout warn"><span class="lbl">Cuidado</span><p>Un error común o algo que se rompe con facilidad.</p></div>
+<div class="callout ex"><span class="lbl">Ejercicio</span><p>Algo para practicar.</p></div>
+<p>Los comandos que se escriben en la terminal aparecen en recuadros grises. Las líneas que empiezan con <code>#</code> dentro de esos recuadros son comentarios: explican, no se escriben. Las etiquetas <span class="badge ok">verificado</span> y <span class="badge no">sin verificar</span> indican si un procedimiento ya fue probado por el equipo.</p>
+</section>
+
+<!-- ================================================================== -->
+<section id="panorama">
+<h2><span class="num">1</span>Qué es el simulador</h2>
+
+<p>“El simulador” no es un solo programa: son varias piezas apiladas, cada una con un trabajo. Entender esta pila ayuda a saber <strong>dónde</strong> buscar cuando algo hay que cambiar.</p>
+
+<figure>
+<svg viewBox="0 0 680 430" role="img" aria-label="Pila de cinco capas: team-template, rSoccer, robosim, rSim y ODE, con órdenes bajando y estado subiendo">
+  <defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--svg-stroke)"/></marker></defs>
+  <rect x="80" y="10" width="420" height="62" rx="8" class="box2"/>
+  <text x="96" y="36" font-size="19" font-weight="600">team-template (nuestro código)</text>
+  <text x="96" y="58" font-size="14" class="muted">estrategias, partido, cinemática · Python</text>
+  <rect x="80" y="92" width="420" height="62" rx="8" class="box"/>
+  <text x="96" y="118" font-size="19" font-weight="600">rSoccer</text>
+  <text x="96" y="140" font-size="14" class="muted">estructura de “entorno” y dibujo de la cancha · Python</text>
+  <rect x="80" y="174" width="420" height="62" rx="8" class="box"/>
+  <text x="96" y="200" font-size="19" font-weight="600">robosim</text>
+  <text x="96" y="222" font-size="14" class="muted">el puente que deja usar rSim desde Python</text>
+  <rect x="80" y="256" width="420" height="62" rx="8" class="box"/>
+  <text x="96" y="282" font-size="19" font-weight="600">rSim (fork del equipo)</text>
+  <text x="96" y="304" font-size="14" class="muted">cancha, pelota y robots hechos de piezas físicas · C++</text>
+  <rect x="80" y="338" width="420" height="62" rx="8" class="box"/>
+  <text x="96" y="364" font-size="19" font-weight="600">ODE</text>
+  <text x="96" y="386" font-size="14" class="muted">motor de física: masas, motores, fricción, choques</text>
+  <line x1="540" y1="30" x2="540" y2="385" style="stroke:var(--svg-blue)" stroke-width="2.5" marker-end="url(#arr)"/>
+  <text x="552" y="200" font-size="15" style="fill:var(--svg-blue)">órdenes</text>
+  <line x1="620" y1="385" x2="620" y2="30" style="stroke:var(--svg-green)" stroke-width="2.5" marker-end="url(#arr)"/>
+  <text x="598" y="420" font-size="15" style="fill:var(--svg-green)">estado</text>
+  <line x1="50" y1="164" x2="510" y2="164" style="stroke:var(--svg-red)" stroke-dasharray="5 4" stroke-width="1.5"/>
+  <text x="30" y="164" font-size="13" class="muted" text-anchor="middle" transform="rotate(-90 30 164)">Python ↑ · C++ ↓</text>
+</svg>
+<figcaption>Las órdenes (velocidades de las ruedas) bajan; el estado (dónde está cada cosa) sube. Arriba de la línea punteada, un cambio se usa en cuanto se guarda el archivo. Abajo, hay que <strong>recompilar</strong>.</figcaption>
+</figure>
+
+<div class="table-wrap"><table>
+<tr><th>Pieza</th><th>Qué hace, en una frase</th><th>Quién la mantiene</th></tr>
+<tr><td><strong>ODE</strong></td><td>Calcula la física: dado cómo están los objetos y qué fuerzas actúan, dice dónde estarán un instante después. No sabe nada de fútbol.</td><td>Proyecto externo; se instala una vez.</td></tr>
+<tr><td><strong>rSim</strong></td><td>Arma el mundo del fútbol con piezas de ODE: paredes, pelota, robots con chasis y ruedas.</td><td>Original del equipo brasileño RobôCIn. Usamos un <strong>fork</strong> (copia propia) con el robot omni: <code>Roborregos-VSSS2-2027/rSim</code>.</td></tr>
+<tr><td><strong>robosim</strong></td><td>Es rSim compilado como módulo de Python: permite escribir <code>import robosim</code>.</td><td>Sale del mismo repositorio que rSim.</td></tr>
+<tr><td><strong>rSoccer</strong></td><td>Organiza la simulación como un “entorno” (con <code>reset()</code> y <code>step()</code>) y dibuja la cancha.</td><td>Original de RobôCIn, sin modificar.</td></tr>
+<tr><td><strong>team-template</strong></td><td>Nuestro código: convierte órdenes en velocidades de rueda, arma el partido y contiene las estrategias.</td><td>El equipo, en este repositorio.</td></tr>
+</table></div>
+
+<h3>Qué pasa en cada instante del partido</h3>
+<p>El partido avanza en <strong>pasos</strong> de 25 milisegundos: 40 pasos por cada segundo de juego. En cada paso ocurre este recorrido (los nombres son los reales del código; el capítulo 4 los explica uno por uno):</p>
+<ol>
+  <li>Cada estrategia recibe un <code>World</code> (dónde está la pelota y cada robot) y responde con una lista de <code>Command</code> (hacia dónde debe ir cada robot).</li>
+  <li><code>MatchVSS</code> convierte cada <code>Command</code> en <strong>velocidades de rueda</strong>, usando las fórmulas de <code>robot.py</code>.</li>
+  <li><code>RSimVSSMixed</code> manda esas velocidades a <code>robosim</code>.</li>
+  <li>rSim aplica las velocidades a los motores y ODE calcula 25 ms de física.</li>
+  <li>rSim devuelve el nuevo estado; rSoccer lo convierte en un <code>Frame</code> y, si hay ventana, lo dibuja.</li>
+  <li><code>MatchVSS</code> convierte el <code>Frame</code> en un nuevo <code>World</code> para cada equipo, y todo vuelve a empezar.</li>
+</ol>
+
+<figure>
+<img src="img/match.png" alt="Captura de un partido: cancha verde, tres robots azules a la izquierda, tres amarillos a la derecha, la pelota naranja y el marcador arriba a la izquierda">
+<figcaption>La ventana del simulador. El frente de cada robot es el lado de su color de identificación (verde = robot 0, morado = 1, rojo = 2); el lado azul o amarillo es la espalda.</figcaption>
+</figure>
+</section>
+
+<!-- ================================================================== -->
+<section id="instalar">
+<h2><span class="num">2</span>Instalación</h2>
+
+<h3>Antes de empezar: la terminal</h3>
+<p>Todo se instala escribiendo comandos en una <strong>terminal</strong>: una ventana donde se escriben órdenes de texto. En macOS es la app “Terminal”; en Ubuntu, “Terminal”; en Windows con WSL, la app “Ubuntu”. También sirve la terminal integrada de VS Code (menú <em>Terminal → New Terminal</em>).</p>
+<p>Tres comandos básicos que aparecen todo el tiempo:</p>
+<div class="table-wrap"><table>
+<tr><th>Comando</th><th>Qué hace</th><th>Ejemplo</th></tr>
+<tr><td><code>cd carpeta</code></td><td>Entra a una carpeta (<em>change directory</em>). <code>cd ..</code> sube un nivel; <code>cd ~</code> va a la carpeta personal.</td><td><code>cd LARC-VSSS-2027/team-template</code></td></tr>
+<tr><td><code>ls</code></td><td>Lista lo que hay en la carpeta actual.</td><td><code>ls</code></td></tr>
+<tr><td><code>pwd</code></td><td>Muestra en qué carpeta se está.</td><td><code>pwd</code></td></tr>
+</table></div>
+<p>Para correr un comando: escribirlo y presionar <kbd>Enter</kbd>. Para detener un programa que está corriendo: <kbd>Ctrl</kbd>+<kbd>C</kbd>.</p>
+
+<h3>Qué instala el script</h3>
+<p>La carpeta <code>team-template</code> trae un script, <code>install.sh</code>, que hace toda la instalación. Sus pasos son:</p>
+<ol>
+  <li>Instala las herramientas del sistema: Python 3.12, un compilador de C++, CMake y la librería de física ODE.</li>
+  <li>Crea un <strong>entorno virtual</strong> (<code>.venv</code>): una carpeta con un Python propio para este proyecto (se explica en <a href="#f-install">install.sh</a>).</li>
+  <li>Descarga el rSim del equipo desde GitHub y lo <strong>compila</strong> (lo traduce de C++ a un programa que la computadora puede ejecutar).</li>
+  <li>Instala rSoccer y el resto de las librerías de Python.</li>
+</ol>
+<p>Al final imprime <code>rSim omni OK</code>. Si aparece ese mensaje, todo quedó bien.</p>
+
+<h3>Paso común: acceso a GitHub</h3>
+<p>El código vive en GitHub, en la organización <strong>RoBorregos</strong> (este repositorio) y <strong>Roborregos-VSSS2-2027</strong> (el fork de rSim). Hace falta una cuenta de GitHub con acceso a ambas. Si los repositorios son privados, también hay que <strong>autenticarse</strong> en la computadora una sola vez. La forma más sencilla es la herramienta oficial <code>gh</code>:</p>
+<pre><code>gh auth login        <span class="c"># responder: GitHub.com → HTTPS → Login with a web browser</span></code></pre>
+<p>Cada sistema instala <code>gh</code> de forma distinta; se indica en su sección.</p>
+
+<h3 id="inst-mac">macOS</h3>
+<span class="badge ok">verificado</span>
+<ol class="steps">
+  <li><strong>Instalar Homebrew</strong>, el instalador de programas para macOS. Seguir las instrucciones de <a href="https://brew.sh">brew.sh</a>: se copia un comando en la terminal. Al terminar, Homebrew imprime dos o tres comandos más (“Next steps”) que hay que copiar y correr para que <code>brew</code> funcione.</li>
+  <li><strong>Instalar el compilador de Apple</strong> (si no está):
+<pre><code>xcode-select --install</code></pre></li>
+  <li><strong>Instalar git y gh</strong>, y autenticarse:
+<pre><code>brew install git gh
+gh auth login</code></pre></li>
+  <li><strong>Descargar el repositorio</strong> del equipo y entrar a la plantilla:
+<pre><code>cd ~
+git clone https://github.com/RoBorregos/LARC-VSSS-2027.git
+cd LARC-VSSS-2027/team-template</code></pre>
+  Si la carpeta <code>team-template</code> todavía no está en la rama principal (<code>main</code>), hay que cambiar a la rama donde esté, por ejemplo <code>git switch simulator-strategy</code>.</li>
+  <li><strong>Correr el instalador</strong>:
+<pre><code>./install.sh</code></pre>
+  Tarda uno o dos minutos. Debe terminar con <code>rSim omni OK</code>.</li>
+</ol>
+
+<h3 id="inst-wsl">Windows, mediante WSL</h3>
+<span class="badge no">sin verificar</span>
+<p>Compilar rSim directamente en Windows es complicado. La ruta recomendada es <strong>WSL</strong> (<em>Windows Subsystem for Linux</em>): un Ubuntu completo que corre dentro de Windows. Se instala una vez y después se usa como una app más. Requiere <strong>Windows 11</strong> (o Windows 10 actualizado; con Windows 10 puede no aparecer la ventana del partido).</p>
+<ol class="steps">
+  <li><strong>Instalar WSL con Ubuntu 24.04.</strong> Abrir PowerShell <em>como administrador</em> (clic derecho sobre PowerShell → “Ejecutar como administrador”) y correr:
+<pre><code>wsl --install -d Ubuntu-24.04</code></pre>
+  Es importante pedir <strong>24.04</strong>: el instalador del equipo espera Python 3.12, que es el de esa versión. Reiniciar la computadora si lo pide.</li>
+  <li><strong>Abrir Ubuntu</strong> desde el menú Inicio (aparece como “Ubuntu 24.04”). La primera vez pide crear un <strong>usuario y contraseña de Linux</strong>. Anotar la contraseña: se pedirá cada vez que un comando use <code>sudo</code> (permisos de administrador). Al escribirla no aparecen caracteres en pantalla; es normal.</li>
+  <li><strong>Actualizar Ubuntu e instalar git y gh</strong>, dentro de la ventana de Ubuntu:
+<pre><code>sudo apt update &amp;&amp; sudo apt upgrade -y
+sudo apt install -y git gh
+git config --global user.name "Nombre Apellido"
+git config --global user.email "correo@ejemplo.com"
+gh auth login</code></pre></li>
+  <li><strong>Descargar el repositorio en la carpeta de Linux</strong>, no en las de Windows:
+<pre><code>cd ~
+git clone https://github.com/RoBorregos/LARC-VSSS-2027.git
+cd LARC-VSSS-2027/team-template</code></pre>
+  <div class="callout warn"><span class="lbl">Cuidado · No usar <code>/mnt/c/…</code></span><p>Desde Ubuntu se puede entrar a las carpetas de Windows (<code>/mnt/c/Users/…</code>), pero ahí todo es mucho más lento y aparecen errores de permisos. El proyecto debe vivir en <code>~</code> (la carpeta personal de Linux). Desde el Explorador de Windows, esa carpeta se ve en la barra lateral como “Linux → Ubuntu-24.04 → home”.</p></div></li>
+  <li><strong>Correr el instalador</strong>:
+<pre><code>./install.sh</code></pre>
+  Pedirá la contraseña de Linux. La primera vez compila ODE desde su código fuente, así que tarda varios minutos. Debe terminar con <code>rSim omni OK</code>.</li>
+  <li><strong>Ver un partido</strong> (ver <a href="#inst-usar">Usarlo día a día</a>). En Windows 11 la ventana aparece como cualquier otra (gracias a WSLg). Si no aparece ninguna ventana, se puede usar la opción <code>--no-window</code> para al menos ver el marcador en la terminal.</li>
+  <li><strong>Editar código con VS Code.</strong> Instalar VS Code en Windows y su extensión <strong>WSL</strong> (de Microsoft). Después, desde la ventana de Ubuntu, dentro de <code>team-template</code>:
+<pre><code>code .</code></pre>
+  VS Code se abre “conectado” a Ubuntu (lo indica abajo a la izquierda: <em>WSL: Ubuntu-24.04</em>). Su terminal integrada ya es la de Ubuntu. Para que VS Code use el Python del proyecto: <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd> → <em>Python: Select Interpreter</em> → elegir el que dice <code>.venv</code>.</li>
+</ol>
+<div class="callout note"><span class="lbl">Nota · Ruta sin verificar</span>
+<p>La parte de Linux del instalador está escrita para Ubuntu 24.04 pero todavía no ha sido probada por el equipo. Si algo falla, copiar el mensaje de error completo y reportarlo para corregir esta guía y el script.</p>
+</div>
+
+<h3 id="inst-linux">Linux (Ubuntu 24.04)</h3>
+<span class="badge no">sin verificar</span>
+<p>Igual que WSL a partir del paso 3: instalar git y gh con <code>apt</code>, clonar el repositorio en <code>~</code> y correr <code>./install.sh</code>. El script usa <code>sudo apt-get</code> para las dependencias y compila ODE la primera vez.</p>
+
+<h3 id="inst-usar">Usarlo día a día</h3>
+<h4>1. Activar el entorno virtual</h4>
+<p>En <strong>cada terminal nueva</strong>, antes de correr cualquier comando de Python del proyecto:</p>
+<pre><code>cd ~/LARC-VSSS-2027/team-template
+source .venv/bin/activate</code></pre>
+<p>Si funcionó, la línea de la terminal empieza con <code>(.venv)</code>. Si se olvida este paso, aparecen errores como <code>ModuleNotFoundError: No module named 'team_vsss'</code>.</p>
+
+<h4>2. Ver un partido</h4>
+<pre><code>python scripts/view_match.py --yellow still      <span class="c"># nuestro equipo contra uno que no se mueve</span>
+python scripts/view_match.py                     <span class="c"># estrategia básica contra estrategia básica</span>
+python scripts/view_match.py --help              <span class="c"># todas las opciones</span></code></pre>
+<div class="table-wrap"><table>
+<tr><th>Opción</th><th>Qué hace</th></tr>
+<tr><td><code>--blue NOMBRE</code>, <code>--yellow NOMBRE</code></td><td>Estrategia de cada equipo (<code>basic</code> o <code>still</code>, o las que se agreguen).</td></tr>
+<tr><td><code>--blue-differential</code></td><td>El equipo azul usa robots de 2 ruedas en lugar de omni.</td></tr>
+<tr><td><code>--yellow-omni</code></td><td>El equipo amarillo usa robots omni (por defecto son de 2 ruedas, como la mayoría de los rivales en VSSS).</td></tr>
+<tr><td><code>--duration S</code></td><td>Duración del partido en segundos (por defecto 300).</td></tr>
+<tr><td><code>--no-window</code></td><td>No dibuja: simula lo más rápido posible y solo imprime el marcador.</td></tr>
+</table></div>
+<p><strong>Qué se debe ver:</strong> una ventana con la cancha (en macOS a veces queda detrás de otras ventanas; buscarla en el Dock) y, en la terminal, una línea por cada jugada terminada, por ejemplo <code>goal_blue  -&gt;  {'blue': 1, 'yellow': 0}</code>. Con <code>--yellow still</code>, el equipo azul anota unos 28 goles por minuto. Sin opciones juegan dos estrategias iguales que se traban: aparece <code>ball_stuck</code> y el marcador queda 0-0. Eso es normal (se explica en <a href="#f-match">match.py</a>). Para terminar: cerrar con <kbd>Ctrl</kbd>+<kbd>C</kbd> en la terminal.</p>
+
+<h4>3. Actualizar cuando el equipo cambia algo</h4>
+<pre><code>git pull                 <span class="c"># trae los cambios de GitHub</span>
+./install.sh             <span class="c"># solo si cambió rSim o las dependencias</span></code></pre>
+</section>
+
+<!-- ================================================================== -->
+<section id="conceptos">
+<h2><span class="num">3</span>Conceptos antes del código</h2>
+
+<h3 id="cancha">La cancha, las coordenadas y las unidades</h3>
+<p>La cancha de VSSS mide <strong>1.50 m de largo y 1.30 m de ancho</strong>; los arcos miden 0.40 m de ancho. Para decir dónde está algo se usan coordenadas <span class="math">(x, y)</span> en metros, con el origen <span class="math">(0, 0)</span> en el centro:</p>
+<figure>
+<svg viewBox="0 0 680 400" role="img" aria-label="Cancha vista desde arriba con origen al centro, x hacia la derecha, y hacia arriba y theta medido antihorario desde x">
+  <defs><marker id="arrK" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--svg-stroke)"/></marker></defs>
+  <rect x="115" y="50" width="450" height="300" class="box2" stroke-width="2"/>
+  <rect x="85" y="140" width="30" height="120" class="box"/>
+  <rect x="565" y="140" width="30" height="120" class="box"/>
+  <line x1="340" y1="50" x2="340" y2="350" class="stroke" stroke-dasharray="4 4"/>
+  <circle cx="340" cy="200" r="60" class="stroke" stroke-dasharray="4 4"/>
+  <line x1="340" y1="200" x2="450" y2="200" class="stroke" stroke-width="2.2" marker-end="url(#arrK)"/>
+  <line x1="340" y1="200" x2="340" y2="95" class="stroke" stroke-width="2.2" marker-end="url(#arrK)"/>
+  <text x="456" y="205" font-size="18" font-style="italic">+x</text>
+  <text x="330" y="88" font-size="18" font-style="italic">+y</text>
+  <circle cx="340" cy="200" r="4" style="fill:var(--svg-stroke)"/>
+  <text x="300" y="222" font-size="14" class="muted">(0, 0)</text>
+  <rect x="190" y="245" width="34" height="34" rx="3" style="fill:var(--svg-blue);stroke:var(--svg-stroke)" transform="rotate(-35 207 262)"/>
+  <line x1="207" y1="262" x2="262" y2="224" class="stroke" stroke-width="2" marker-end="url(#arrK)"/>
+  <path d="M232,262 A25,25 0 0,0 227,247" class="stroke"/>
+  <line x1="207" y1="262" x2="262" y2="262" class="stroke" stroke-dasharray="3 3"/>
+  <text x="240" y="278" font-size="15" font-style="italic">θ</text>
+  <text x="128" y="74" font-size="14" class="muted">arco que defiende el azul (x = −0.75)</text>
+  <text x="552" y="74" font-size="14" class="muted" text-anchor="end">arco que ataca el azul (x = +0.75)</text>
+  <text x="340" y="378" font-size="14" class="muted" text-anchor="middle">1.50 m × 1.30 m · arcos de 0.40 m</text>
+</svg>
+<figcaption>Vista desde arriba. <span class="math">x</span> crece hacia la derecha, <span class="math">y</span> hacia arriba. El ángulo θ dice hacia dónde mira un robot: 0° es hacia +x y crece en sentido antihorario (90° = hacia +y).</figcaption>
+</figure>
+<div class="table-wrap"><table>
+<tr><th>Magnitud</th><th>Unidad</th><th>Nota</th></tr>
+<tr><td>Posición <span class="math">x, y</span></td><td>metros (m)</td><td></td></tr>
+<tr><td>Velocidad <span class="math">v<sub>x</sub>, v<sub>y</sub></span></td><td>metros por segundo (m/s)</td><td></td></tr>
+<tr><td>Orientación θ que <strong>entrega</strong> el simulador</td><td>grados (°)</td><td>De 0 a 360.</td></tr>
+<tr><td>Velocidad de giro que <strong>entrega</strong> el simulador</td><td>grados por segundo (°/s)</td><td>Campo <code>w</code> de <code>Thing</code>.</td></tr>
+<tr><td>Velocidad de giro que se <strong>manda</strong></td><td>radianes por segundo (rad/s)</td><td>Campo <code>w</code> de <code>Command</code>.</td></tr>
+<tr><td>Velocidad de una rueda</td><td>radianes por segundo (rad/s)</td><td>Una vuelta completa = 2π rad ≈ 6.28 rad.</td></tr>
+</table></div>
+<div class="callout warn"><span class="lbl">Cuidado · Grados y radianes</span>
+<p>El simulador entrega ángulos en <strong>grados</strong>, pero las funciones <code>math.sin</code> y <code>math.cos</code> de Python, y las órdenes de giro, usan <strong>radianes</strong>. Para convertir: <code>math.radians(grados)</code> y <code>math.degrees(radianes)</code>. Mezclar unidades es el error más común en este código.</p>
+</div>
+
+<h4>Dos formas de describir una velocidad</h4>
+<ul>
+  <li><strong>Marco de la cancha</strong> (global): “ir hacia +x de la cancha”, es decir, hacia el arco rival. Así piensan las estrategias.</li>
+  <li><strong>Marco del robot</strong> (local): “ir hacia el frente del robot” o “hacia su izquierda”. Así piensan las ruedas, porque van atornilladas al robot.</li>
+</ul>
+<p>Si el robot mira hacia +y (θ = 90°) y la estrategia quiere ir hacia +y de la cancha, para el robot eso es “hacia el frente”. La función <code>global_to_local</code> de <code>robot.py</code> hace esa conversión.</p>
+
+<h3 id="robot-omni">El robot omnidireccional</h3>
+<p>Un robot de VSSS cabe en un cubo de 7.5 cm. El nuestro tiene <strong>tres ruedas omnidireccionales</strong>: ruedas con pequeños rodillos en el borde. Cada rueda empuja normalmente en su dirección de giro, pero sus rodillos le permiten <strong>deslizarse de lado</strong> casi sin resistencia. Con tres de ellas en distintos ángulos, el robot puede moverse en <strong>cualquier dirección sin girar primero</strong>, y además girar al mismo tiempo.</p>
+<p>La mayoría de los robots rivales en VSSS son <strong>diferenciales</strong>: dos ruedas normales, una de cada lado, como un carrito. Solo avanzan hacia su frente (o hacia atrás) y giran; para ir hacia un lado, primero tienen que girar. El simulador permite que cada equipo sea de un tipo o del otro.</p>
+<figure>
+<svg viewBox="0 0 680 400" role="img" aria-label="Robot omni visto desde arriba con ruedas en 60, 180 y 300 grados y sus direcciones de empuje">
+  <defs>
+    <marker id="arrK2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--svg-stroke)"/></marker>
+    <marker id="arrB2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--svg-blue)"/></marker>
+  </defs>
+  <rect x="200" y="80" width="240" height="240" rx="10" class="box2" stroke-width="2"/>
+  <circle cx="320" cy="200" r="4" style="fill:var(--svg-stroke)"/>
+  <line x1="320" y1="200" x2="500" y2="200" class="stroke" stroke-width="2" marker-end="url(#arrK2)"/>
+  <text x="508" y="196" font-size="16" font-style="italic">frente del robot</text>
+  <text x="508" y="216" font-size="14" class="muted">(x local)</text>
+  <g transform="rotate(-60 382 93.6)"><rect x="372" y="63.6" width="20" height="60" rx="4" style="fill:var(--svg-fill);stroke:var(--svg-stroke)" stroke-width="2"/></g>
+  <line x1="320" y1="200" x2="382" y2="93.6" class="stroke" stroke-dasharray="3 3"/>
+  <line x1="382" y1="93.6" x2="330" y2="63.6" style="stroke:var(--svg-blue)" stroke-width="3" marker-end="url(#arrB2)"/>
+  <text x="392" y="88" font-size="16">rueda 0 · 60°</text>
+  <path d="M360,200 A40,40 0 0,0 340,165.4" class="stroke"/>
+  <text x="362" y="180" font-size="14" font-style="italic">a</text>
+  <rect x="186" y="170" width="20" height="60" rx="4" style="fill:var(--svg-fill);stroke:var(--svg-stroke)" stroke-width="2"/>
+  <line x1="320" y1="200" x2="196" y2="200" class="stroke" stroke-dasharray="3 3"/>
+  <line x1="196" y1="200" x2="196" y2="258" style="stroke:var(--svg-blue)" stroke-width="3" marker-end="url(#arrB2)"/>
+  <text x="50" y="196" font-size="16">rueda 1 · 180°</text>
+  <g transform="rotate(60 382 306.4)"><rect x="372" y="276.4" width="20" height="60" rx="4" style="fill:var(--svg-fill);stroke:var(--svg-stroke)" stroke-width="2"/></g>
+  <line x1="320" y1="200" x2="382" y2="306.4" class="stroke" stroke-dasharray="3 3"/>
+  <line x1="382" y1="306.4" x2="432" y2="277.4" style="stroke:var(--svg-blue)" stroke-width="3" marker-end="url(#arrB2)"/>
+  <text x="392" y="336" font-size="16">rueda 2 · 300°</text>
+  <text x="40" y="378" font-size="14" style="fill:var(--svg-blue)">→ flechas azules: hacia dónde empuja cada rueda cuando gira con velocidad positiva</text>
+</svg>
+<figcaption>El robot omni simulado visto desde arriba (proporciones exageradas). Las ruedas están a 60°, 180° y 300° del frente, a 3.875 cm del centro.</figcaption>
+</figure>
+
+<h4>Cómo se simula una rueda omni</h4>
+<p>rSim no dibuja ni calcula los rodillos uno por uno. Usa un truco: le da a cada rueda <strong>fricción distinta en dos direcciones</strong>. En la dirección en que la rueda rueda, la fricción es alta (0.8): ahí la rueda “agarra” el piso y empuja. De lado, en una rueda normal la fricción también es alta (1.0), pero en una rueda omni es casi cero (0.05): los rodillos la dejan resbalar. Esa es toda la diferencia física.</p>
+
+<h4>Cinemática: de “quiero moverme así” a “gira cada rueda así”</h4>
+<p>La <strong>cinemática inversa</strong> responde: si se quiere que el robot se mueva con velocidad <span class="math">(v<sub>x</sub>, v<sub>y</sub>)</span> y gire con velocidad <span class="math">ω</span> (omega), ¿a cuántos rad/s debe girar cada rueda? Para el robot omni, la fórmula para la rueda montada en el ángulo <span class="math">a</span> es:</p>
+<div class="eq"><span class="math">velocidad del borde de la rueda = L·ω − v<sub>x</sub>·sen(a) + v<sub>y</sub>·cos(a)</span><br><span class="math">velocidad de la rueda (rad/s) = velocidad del borde ÷ r</span></div>
+<p>donde <span class="math">L</span> = 0.03875 m es la distancia del centro del robot a la rueda y <span class="math">r</span> = 0.026 m es el radio de la rueda. La explicación detallada de por qué funciona está en la primera pregunta de <a href="#f-robot">robot.py</a>. Con números:</p>
+<div class="table-wrap"><table>
+<tr><th>Movimiento deseado</th><th>rueda 0 (60°)</th><th>rueda 1 (180°)</th><th>rueda 2 (300°)</th></tr>
+<tr><td>Adelante a 0.5 m/s</td><td>−16.7 rad/s</td><td>0</td><td>+16.7 rad/s</td></tr>
+<tr><td>A la izquierda a 0.5 m/s</td><td>+9.6</td><td>−19.2</td><td>+9.6</td></tr>
+<tr><td>Girar a 2 rad/s</td><td>+3.0</td><td>+3.0</td><td>+3.0</td></tr>
+</table></div>
+<p>Observaciones útiles: para ir hacia adelante la rueda trasera no gira; para ir de lado, la rueda trasera trabaja el doble que las otras, así que el robot es algo más rápido hacia el frente (≈1.38 m/s como máximo) que de lado (≈1.20 m/s); para girar, las tres ruedas giran igual.</p>
+<p>Para el robot <strong>diferencial</strong> la cinemática es más simple: <span class="math">rueda izquierda = (v − ω·L) ÷ r</span> y <span class="math">rueda derecha = (v + ω·L) ÷ r</span>, donde <span class="math">v</span> es la velocidad hacia el frente.</p>
+
+<h3 id="python">Python que aparece en el código</h3>
+<p>El código usa algunas herramientas de Python que van más allá de lo básico. Esta tabla las reúne; la mayoría se explican a fondo en las respuestas a las preguntas del capítulo 4.</p>
+<div class="table-wrap"><table>
+<tr><th>Herramienta</th><th>Aspecto</th><th>Dónde se explica</th></tr>
+<tr><td>Módulos, paquetes e <code>import</code></td><td><code>from .world import Command</code></td><td>Abajo</td></tr>
+<tr><td>Clases, <code>self</code> y herencia</td><td><code>class MatchVSS(VSSBaseEnv):</code></td><td>Abajo</td></tr>
+<tr><td>Dataclasses</td><td><code>@dataclass</code></td><td><a href="#q-world-libs">world.py</a></td></tr>
+<tr><td>Anotaciones de tipo</td><td><code>x: float</code>, <code>-&gt; World</code></td><td><a href="#q-world-colon">world.py</a></td></tr>
+<tr><td>Comprensiones y generadores</td><td><code>[f(r) for r in lista]</code></td><td><a href="#q-robot-for">robot.py</a></td></tr>
+<tr><td>Expresión condicional</td><td><code>A if condición else B</code></td><td><a href="#q-sim-if">simulator.py</a></td></tr>
+<tr><td>Diccionarios y tuplas</td><td><code>{"blue": 0}</code>, <code>(team, id)</code></td><td><a href="#q-match-dict">match.py</a></td></tr>
+<tr><td>Funciones <code>lambda</code></td><td><code>key=lambda r: ...</code></td><td><a href="#q-basic-min">basic.py</a></td></tr>
+<tr><td><code>try</code> / <code>except</code> / <code>finally</code></td><td>Manejo de errores</td><td><a href="#q-view-try">view_match.py</a></td></tr>
+</table></div>
+
+<h4>Módulos, paquetes e import</h4>
+<p>Un <strong>módulo</strong> es un archivo <code>.py</code>. Un <strong>paquete</strong> es una carpeta con módulos y un archivo <code>__init__.py</code> (que puede estar vacío: su sola presencia le dice a Python “esta carpeta es un paquete”). Por eso <code>team_vsss/__init__.py</code> está vacío.</p>
+<p><code>import</code> trae código de otro módulo. Dentro de un paquete se usan <strong>imports relativos</strong>: un punto (<code>.</code>) significa “esta misma carpeta”, y dos (<code>..</code>) “la carpeta de arriba”. Así, en <code>team_vsss/strategies/basic.py</code>, <code>from ..world import Command</code> trae <code>Command</code> desde <code>team_vsss/world.py</code>.</p>
+
+<h4>Clases, objetos, <code>self</code> y herencia</h4>
+<p>Una <strong>clase</strong> es un molde para crear <strong>objetos</strong> que guardan datos (atributos) y saben hacer cosas (métodos, que son funciones dentro de la clase). <code>self</code> es el objeto mismo: <code>self.goals</code> es el atributo <code>goals</code> de ese objeto. <code>__init__</code> es el método que se ejecuta al crear el objeto.</p>
+<p>La <strong>herencia</strong> permite crear una clase a partir de otra: <code>class MatchVSS(VSSBaseEnv):</code> significa “MatchVSS es un VSSBaseEnv, con cambios”. La clase hija recibe todos los métodos de la madre y puede <strong>reemplazar</strong> (sobrescribir) los que quiera. <code>super()</code> da acceso a la versión de la madre: <code>super().__init__(...)</code> ejecuta el <code>__init__</code> original antes de agregar lo propio.</p>
+<pre><code>class Animal:
+    def __init__(self, nombre):
+        self.nombre = nombre
+    def hablar(self):
+        return "..."
+
+class Perro(Animal):              <span class="c"># Perro hereda de Animal</span>
+    def hablar(self):             <span class="c"># sobrescribe el método de la madre</span>
+        return f"{self.nombre} dice guau"
+
+p = Perro("Toby")                 <span class="c"># usa el __init__ heredado de Animal</span>
+print(p.hablar())                 <span class="c"># Toby dice guau</span></code></pre>
+<p>El proyecto usa esta idea todo el tiempo: rSoccer trae clases que ya saben simular y dibujar, y <code>team-template</code> hereda de ellas para cambiar solo lo necesario, <strong>sin modificar el código de rSoccer</strong>.</p>
+</section>
+
+<!-- ================================================================== -->
+<section id="archivos">
+<h2><span class="num">4</span>Recorrido por los archivos</h2>
+
+<p>Esta es la estructura de <code>team-template</code>. Conviene leer los archivos en el orden de este capítulo: cada uno usa a los anteriores.</p>
+<pre><code>team-template/
+├── pyproject.toml          <span class="c"># qué es este proyecto y qué librerías necesita</span>
+├── install.sh              <span class="c"># instala todo</span>
+├── team_vsss/              <span class="c"># el paquete de Python del equipo</span>
+│   ├── __init__.py         <span class="c"># vacío: marca la carpeta como paquete</span>
+│   ├── robot.py            <span class="c"># medidas del robot y cinemática</span>
+│   ├── simulator.py        <span class="c"># conecta rSoccer con nuestro rSim omni</span>
+│   ├── world.py            <span class="c"># lo que una estrategia ve y lo que responde</span>
+│   ├── match.py            <span class="c"># el partido: MatchVSS</span>
+│   └── strategies/
+│       ├── __init__.py     <span class="c"># catálogo de estrategias</span>
+│       ├── basic.py        <span class="c"># estrategia de ejemplo</span>
+│       └── still.py        <span class="c"># estrategia que no hace nada</span>
+└── scripts/
+    ├── view_match.py       <span class="c"># ver un partido</span>
+    └── check_omni.py       <span class="c"># probar el robot omni después de cambiar rSim</span></code></pre>
+
+<!-- ---------------------------------------------------------- -->
+<h3 id="f-pyproject"><code>pyproject.toml</code></h3>
+<p>Es la “ficha técnica” del proyecto: su nombre, su versión y qué librerías necesita. pip (el instalador de librerías de Python) lo lee al hacer <code>pip install -e .</code>.</p>
+<div class="file">team-template/pyproject.toml (fragmento)</div>
+<pre><code>[project]
+name = "vsss-team"
+dependencies = [
+    "rc-robosim",       <span class="c"># nuestro rSim; install.sh lo instala ANTES, desde el fork</span>
+    "rsoccer-gym @ git+https://github.com/robocin/rSoccer@3adf7c3e...",
+    "gymnasium&gt;=1.0",
+    "pygame&gt;=2.6",
+    "numpy",
+]
+
+[tool.setuptools]
+packages = ["team_vsss", "team_vsss.strategies"]</code></pre>
+<ul>
+  <li><strong><code>rc-robosim</code></strong> es el nombre del paquete de rSim. No lleva número de versión ni dirección porque <code>install.sh</code> lo instala por separado desde el fork del equipo.</li>
+  <li><strong><code>rsoccer-gym @ git+…@3adf7c3e…</code></strong> instala rSoccer desde GitHub, fijado a un <strong>commit</strong> exacto (una versión concreta del código). Así todo el equipo tiene exactamente la misma versión.</li>
+  <li><strong>gymnasium</strong> da la estructura de “entorno”; <strong>pygame</strong> dibuja la ventana; <strong>numpy</strong> hace cálculos con tablas de números.</li>
+  <li><strong><code>packages</code></strong> lista las carpetas de código que forman el paquete. Si se agrega una subcarpeta nueva con código, hay que añadirla aquí.</li>
+</ul>
+<p><code>pip install -e .</code> instala el proyecto en modo <strong>editable</strong>: en lugar de copiar los archivos, deja un enlace a la carpeta. Así, cualquier cambio en un <code>.py</code> se usa en la siguiente ejecución, sin reinstalar.</p>
+
+<!-- ---------------------------------------------------------- -->
+<h3 id="f-install"><code>install.sh</code></h3>
+<p>Es un <strong>script de bash</strong>: una lista de comandos de terminal guardada en un archivo, para no tener que escribirlos a mano. Sus cuatro pasos se describieron en el capítulo 2. Detalles que vale la pena conocer:</p>
+<ul>
+  <li><code>RSIM_URL</code> dice de dónde descargar rSim. Por defecto es el fork del equipo, rama <code>main</code>. Se puede cambiar sin editar el archivo: <code>RSIM_URL=git+https://github.com/otra-org/rSim@v1.3.0 ./install.sh</code>.</li>
+  <li><code>RSIM_WHEEL</code> permite usar un rSim ya compilado (un archivo <code>.whl</code>) en lugar de compilarlo: es más rápido y no requiere compilador.</li>
+  <li><code>case "$(uname -s)"</code> detecta el sistema operativo: <code>Darwin</code> es macOS, <code>Linux</code> es Linux o WSL.</li>
+  <li>Instala rSim con <code>--force-reinstall</code> para que, si ya estaba instalado, lo reemplace por la versión más nueva del fork.</li>
+</ul>
+
+<div class="question" id="q-install-set">
+  <div class="qhead">What does set -euo pipefail do? <span class="where">install.sh · línea 11</span></div>
+  <details><summary>Ver respuesta</summary>
+  <p>Son tres ajustes de seguridad para scripts de bash. Por defecto, bash sigue ejecutando líneas aunque una falle, lo cual puede causar errores confusos más adelante.</p>
+  <ul>
+    <li><code>-e</code>: si un comando falla, el script se detiene ahí mismo.</li>
+    <li><code>-u</code>: si se usa una variable que no existe (por ejemplo, por un error de tipeo), es un error en lugar de tratarla como vacía.</li>
+    <li><code>-o pipefail</code>: en una cadena de comandos unidos con <code>|</code> (por ejemplo, <code>curl … | tar …</code>), si cualquiera falla, falla toda la cadena. Sin esto, solo importaría el último.</li>
+  </ul>
+  <p>En resumen: si algo sale mal, el script se detiene en el primer error, que es el más fácil de diagnosticar.</p>
+  </details>
+</div>
+
+<div class="question" id="q-install-venv">
+  <div class="qhead">Why do we need a virtual environment? <span class="where">install.sh · línea 54</span></div>
+  <details><summary>Ver respuesta</summary>
+  <p>Un entorno virtual (<code>.venv</code>) es una carpeta con su propia copia de Python y sus propias librerías, separada del resto de la computadora. Se necesita por varias razones:</p>
+  <ul>
+    <li><strong>Evita conflictos:</strong> otro proyecto puede necesitar otra versión de numpy o pygame. Cada proyecto con su <code>.venv</code> tiene sus versiones sin pisar las del otro.</li>
+    <li><strong>No toca el Python del sistema:</strong> macOS y Ubuntu usan su propio Python para funcionar. Ubuntu incluso prohíbe instalar librerías ahí con pip (error <code>externally-managed-environment</code>).</li>
+    <li><strong>Es desechable:</strong> si algo se descompone, basta borrar la carpeta <code>.venv</code> y volver a correr <code>./install.sh</code>.</li>
+  </ul>
+  <p><code>source .venv/bin/activate</code> “activa” el entorno en esa terminal: a partir de ahí, <code>python</code> y <code>pip</code> son los de <code>.venv</code>. La carpeta <code>.venv</code> nunca se sube a GitHub (por eso está en <code>.gitignore</code>): cada quien crea la suya.</p>
+  </details>
+</div>
+
+<div class="question" id="q-install-tags">
+  <div class="qhead">Why does the version depend on git tags? <span class="where">install.sh · línea 70</span></div>
+  <details><summary>Ver respuesta</summary>
+  <p>rSim no tiene su número de versión escrito en ningún archivo. Una herramienta llamada <strong>setuptools_scm</strong> lo calcula al compilar, a partir de git: busca la <strong>etiqueta</strong> (<em>tag</em>) más reciente, como <code>v1.3.0</code>, y la usa como versión. Si hay commits después de la etiqueta, agrega algo como <code>1.3.1.dev2</code>.</p>
+  <p>Si el repositorio no tiene ninguna etiqueta, setuptools_scm usa <code>0.1.devN</code>. Eso es un problema: rSoccer exige <code>rc-robosim</code> versión 1.2 o mayor. Con <code>0.1</code>, pip cree que rSim no está instalado e intenta descargar el rSim original de internet, que además no compila con las herramientas actuales.</p>
+  <p>Por eso el script revisa la versión y, si es menor a 1.2, se detiene con un mensaje claro. Y por eso el fork del equipo <strong>debe</strong> tener etiquetas: cada cambio importante a rSim termina con una etiqueta nueva (ver <a href="#rsim-flujo">el proceso de rSim</a>).</p>
+  </details>
+</div>
+
+<!-- ---------------------------------------------------------- -->
+<h3 id="f-robot"><code>team_vsss/robot.py</code></h3>
+<p>Contiene las <strong>medidas del robot</strong> y la <strong>cinemática</strong> (capítulo 3): las funciones que convierten “quiero moverme así” en “gira cada rueda así”. Es la documentación oficial de la cinemática que usa la simulación; la misma matemática debe usarse en el control del robot real.</p>
+<div class="file">team_vsss/robot.py (constantes)</div>
+<pre><code>WHEEL_RADIUS = 0.026                       <span class="c"># radio de la rueda [m]</span>
+CENTRAL_DIST_WHEEL = 0.0375 + 0.0025 / 2   <span class="c"># distancia centro-rueda [m]</span>
+MAX_RPM = 440                              <span class="c"># revoluciones por minuto máximas del motor</span>
+MAX_W_WHEEL = MAX_RPM * 2 * math.pi / 60   <span class="c"># lo mismo en rad/s (~46)</span>
+ANGLES_OMNI = (60, 180, 300)               <span class="c"># ángulos de las 3 ruedas, desde el frente</span></code></pre>
+<div class="callout warn"><span class="lbl">Cuidado · Estas medidas existen dos veces</span>
+<p>Las mismas medidas están en el C++ de rSim (<code>vssconfig.h</code>). Python no las lee de ahí: están copiadas. Si se cambia una medida en rSim, hay que cambiarla también aquí y en <code>scripts/check_omni.py</code> (ver <a href="#rsim-ejemplo">el ejemplo del capítulo 5</a>).</p>
+</div>
+<p>Las funciones:</p>
+<ul>
+  <li><code>omni_wheels(vx, vy, w)</code>: cinemática inversa del robot omni. Recibe la velocidad en el marco <em>del robot</em> y devuelve la lista <code>[w0, w1, w2]</code> en rad/s.</li>
+  <li><code>differential_wheels(v, w)</code>: lo mismo para un robot diferencial. Devuelve <code>[izquierda, derecha]</code>.</li>
+  <li><code>saturate(wheels)</code>: si alguna rueda pide más de lo que el motor puede dar (46 rad/s), reduce <strong>todas</strong> en la misma proporción. Así el robot va más lento, pero en la dirección correcta. Si solo se recortara la rueda que se pasa, el robot cambiaría de dirección.</li>
+  <li><code>global_to_local(vx_g, vy_g, theta)</code>: pasa una velocidad del marco de la cancha al marco del robot (capítulo 3). Es una rotación por el ángulo del robot.</li>
+</ul>
+
+<div class="question" id="q-robot-radii">
+  <div class="qhead">Why are the two radii different? <span class="where">robot.py · línea 17</span></div>
+  <details><summary>Ver respuesta</summary>
+  <p>Porque miden cosas distintas y se usan para cosas distintas:</p>
+  <ul>
+    <li><strong><code>WHEEL_RADIUS</code> (2.6 cm)</strong> es el radio <em>de la rueda</em>. Dice cuánto avanza el borde de la rueda por cada radián que gira: <span class="math">velocidad del borde = ω de la rueda × r</span>. Se usa para pasar de m/s a rad/s (por eso al final se divide entre él).</li>
+    <li><strong><code>CENTRAL_DIST_WHEEL</code> (3.875 cm)</strong> es la distancia <em>del centro del robot a la rueda</em>. Dice qué tan rápido se mueve la rueda cuando el robot gira sobre sí mismo: un punto a distancia <span class="math">L</span> del centro, girando a <span class="math">ω</span>, se mueve a <span class="math">L·ω</span>. Vale 0.0375 + 0.00125: la mitad del lado del chasis (7.5 cm ÷ 2) más la mitad del grosor de la rueda, porque rSim coloca cada rueda justo por fuera del costado del chasis.</li>
+  </ul>
+  <p>En la fórmula de la cinemática aparecen los dos: <span class="math">(L·ω − …) ÷ r</span>.</p>
+  </details>
+</div>
+
+<div class="question" id="q-robot-angles">
+  <div class="qhead">Are these angles the same as in our real robot? <span class="where">robot.py · línea 23</span></div>
+  <details><summary>Ver respuesta</summary>
+  <p>El código no puede saberlo: los ángulos <strong>60°, 180° y 300°</strong> son una disposición común para robots omni de tres ruedas (una rueda atrás y dos adelante, separadas 120° entre sí, dejando el frente libre para la pelota). Hay que <strong>confirmarlos con el diseño mecánico</strong> del robot real (su CAD).</p>
+  <p>Si son distintos, hay que cambiarlos en tres lugares: en rSim (<code>OmniWheel0Angle</code>, <code>OmniWheel1Angle</code> y <code>OmniWheel2Angle</code> en <code>vssconfig.h</code>, y recompilar), aquí (<code>ANGLES_OMNI</code>) y en <code>scripts/check_omni.py</code> (<code>ANGLES</code>). Importa también el <strong>orden</strong>: la rueda 0 del simulador debe corresponder al motor 0 del robot real, para que el control del robot pueda usar exactamente estas fórmulas.</p>
+  </details>
+</div>
+
+<div class="question" id="q-robot-how">
+  <div class="qhead">How does this work? <span class="where">robot.py · línea 37 · <code>v_wheel = CENTRAL_DIST_WHEEL * w - vx * math.sin(a) + vy * math.cos(a)</code></span></div>
+  <details><summary>Ver respuesta</summary>
+  <p>La idea clave: <strong>una rueda omni solo puede empujar en su dirección de rodado</strong>; lo que vaya de lado lo absorben sus rodillos. Así que, para cada rueda, hay que calcular qué parte del movimiento del robot cae en su dirección de rodado.</p>
+  <ol>
+    <li><strong>Dirección de rodado.</strong> Una rueda montada en el ángulo <span class="math">a</span> está colocada de forma tangente: su dirección de rodado es perpendicular a la línea que la une con el centro. Esa dirección es el vector <span class="math">(−sen a, cos a)</span> (las flechas azules del diagrama del capítulo 3).</li>
+    <li><strong>Parte por avanzar.</strong> Si el robot se mueve con velocidad <span class="math">(v<sub>x</sub>, v<sub>y</sub>)</span>, la parte que cae en la dirección de rodado se calcula con un <em>producto punto</em>: <span class="math">v<sub>x</sub>·(−sen a) + v<sub>y</sub>·cos a</span>. Eso explica <code>- vx * math.sin(a) + vy * math.cos(a)</code>.</li>
+    <li><strong>Parte por girar.</strong> Si el robot gira a <span class="math">ω</span> rad/s, cada rueda (a distancia <span class="math">L</span> del centro) se mueve a <span class="math">L·ω</span>, y justo en su dirección de rodado. Eso explica <code>CENTRAL_DIST_WHEEL * w</code>.</li>
+    <li><strong>Sumar.</strong> Los dos efectos se suman: el resultado <code>v_wheel</code> es la velocidad que debe tener el borde de la rueda, en m/s.</li>
+    <li><strong>A rad/s.</strong> En la línea siguiente se divide entre el radio de la rueda: <span class="math">ω<sub>rueda</sub> = v ÷ r</span>.</li>
+  </ol>
+  <p>Ejemplo: para ir adelante a 0.5 m/s (<span class="math">v<sub>x</sub></span> = 0.5, lo demás 0), la rueda de 60° da <span class="math">−0.5 × sen 60° = −0.433</span> m/s → −16.7 rad/s; la de 180°, <span class="math">−0.5 × sen 180° = 0</span>; la de 300°, +16.7 rad/s. Es la tabla del capítulo 3.</p>
+  </details>
+</div>
+
+<div class="question" id="q-robot-two">
+  <div class="qhead">Why do we define the two kinds of movement? <span class="where">robot.py · línea 44</span></div>
+  <details><summary>Ver respuesta</summary>
+  <p>Porque en un partido hay dos tipos de robots. El nuestro es omnidireccional, pero la mayoría de los rivales en VSSS son diferenciales (dos ruedas). Para que los partidos simulados se parezcan a los reales, el equipo rival se puede simular como diferencial, y para eso hace falta su cinemática. Además, poder cambiar el equipo propio a diferencial (<code>--blue-differential</code>) sirve para comparar qué tanto ayuda ser omni. <code>MatchVSS</code> decide cuál función usar para cada equipo.</p>
+  </details>
+</div>
+
+<div class="question" id="q-robot-for">
+  <div class="qhead">How does this single-line for work? <span class="where">robot.py · línea 66 · <code>maximum = max(abs(w) for w in wheels)</code></span></div>
+  <details><summary>Ver respuesta</summary>
+  <p><code>abs(w) for w in wheels</code> es una <strong>expresión generadora</strong>: produce, uno por uno, el valor absoluto de cada elemento de <code>wheels</code>. <code>max(...)</code> recibe esos valores y devuelve el mayor. Es equivalente a:</p>
+<pre><code>maximum = 0
+for w in wheels:
+    if abs(w) &gt; maximum:
+        maximum = abs(w)</code></pre>
+  <p>Se usa el valor absoluto porque una rueda que gira a −50 rad/s (hacia atrás) también excede el límite. Con corchetes, <code>[abs(w) for w in wheels]</code>, sería una <strong>comprensión de lista</strong>: la misma idea, pero arma una lista completa. Un poco más abajo hay una: <code>[w * factor for w in wheels]</code> crea una lista nueva con cada rueda multiplicada por <code>factor</code>.</p>
+  </details>
+</div>
+
+<!-- ---------------------------------------------------------- -->
+<h3 id="f-simulator"><code>team_vsss/simulator.py</code></h3>
+<p>rSoccer trae una clase llamada <code>RSimVSS</code> que crea el simulador y le manda órdenes. Pero fue escrita para el rSim original: no sabe pedir robots omni y solo manda 2 velocidades por robot. Este archivo crea <code>RSimVSSMixed</code>, que <strong>hereda</strong> de <code>RSimVSS</code> y cambia solo esas dos cosas.</p>
+<div class="file">team_vsss/simulator.py (núcleo)</div>
+<pre><code>class RSimVSSMixed(RSimVSS):
+    def __init__(self, *args, omni_blue=False, omni_yellow=False, **kwargs):
+        self.omni_blue = omni_blue          <span class="c"># se guardan ANTES de super().__init__()</span>
+        self.omni_yellow = omni_yellow
+        super().__init__(*args, **kwargs)
+
+    def _init_simulator(self, ...):         <span class="c"># cambio 1: pide robots omni</span>
+        return robosim.VSS(..., omni_blue=self.omni_blue, omni_yellow=self.omni_yellow)
+
+    def send_commands(self, commands):      <span class="c"># cambio 2: 3 velocidades por robot</span>
+        cmds = np.zeros((self.n_robots_blue + self.n_robots_yellow, 3))
+        for c in commands:
+            row = self.n_robots_blue + c.id if c.yellow else c.id
+            cmds[row] = [c.v_wheel0, c.v_wheel1, c.v_wheel2]
+        self.simulator.step(cmds)</code></pre>
+<ul>
+  <li><code>*args</code> y <code>**kwargs</code> significan “cualquier otro argumento”: <code>RSimVSSMixed</code> los recibe y se los pasa tal cual a la clase madre. Así no hay que repetir la lista completa de parámetros de rSoccer.</li>
+  <li><strong>El orden en <code>__init__</code> importa.</strong> El <code>__init__</code> de la clase madre llama a <code>self._init_simulator()</code>, que es <em>nuestra</em> versión y usa <code>self.omni_blue</code>. Si <code>self.omni_blue</code> se asignara después de <code>super().__init__()</code>, todavía no existiría y daría <code>AttributeError</code>.</li>
+  <li><code>np.zeros((filas, 3))</code> crea una tabla de ceros (con numpy) con una fila por robot y 3 columnas. Los robots diferenciales solo usan las 2 primeras; rSim ignora la tercera.</li>
+</ul>
+
+<div class="question" id="q-sim-mods">
+  <div class="qhead">What modifications does this add to the original rSim? <span class="where">simulator.py · línea 5</span></div>
+  <details><summary>Ver respuesta</summary>
+  <p>Este archivo <strong>no modifica rSim</strong>: adapta la clase de rSoccer para que pueda usar nuestro rSim ya modificado. Hace dos cosas: (1) al crear el simulador, le pide robots omni con <code>omni_blue</code> y <code>omni_yellow</code>; (2) manda 3 velocidades de rueda por robot en lugar de 2.</p>
+  <p>Las modificaciones a rSim están en el <strong>fork del equipo</strong> (<code>Roborregos-VSSS2-2027/rSim</code>), en C++. Agregan:</p>
+  <ul>
+    <li>Un robot omnidireccional de 3 ruedas, con ángulos y fricción lateral configurables (<code>vssconfig.h</code>).</li>
+    <li>La opción de que cada equipo sea omni o diferencial (<code>vssrobot.cpp</code>, <code>vssworld.cpp</code>).</li>
+    <li>Fricción lateral baja para las ruedas omni, que es lo que imita los rodillos.</li>
+    <li>Los parámetros <code>omni_blue</code> y <code>omni_yellow</code> en Python, que valen <code>False</code> si no se dan, para no romper lo que ya existía (<code>robosim_py.cpp</code>).</li>
+    <li>Una versión más nueva de pybind11 (la herramienta que conecta C++ con Python), necesaria para compilar con Python 3.12.</li>
+  </ul>
+  <p>El capítulo 5 explica esos archivos.</p>
+  </details>
+</div>
+
+<div class="question" id="q-sim-if">
+  <div class="qhead">Why add a conditional here, and how does if/else work in a single line? <span class="where">simulator.py · línea 39 · <code>row = self.n_robots_blue + c.id if c.yellow else c.id</code></span></div>
+  <details><summary>Ver respuesta</summary>
+  <p><strong>Por qué:</strong> rSim espera <em>una sola tabla</em> con todos los robots: primero los azules y después los amarillos. Pero los <code>id</code> se repiten entre equipos: hay un azul 0 y un amarillo 0. Con 3 azules, las filas 0, 1 y 2 son los azules, y el amarillo 0 va en la fila 3 (= 3 + 0), el amarillo 1 en la 4, etc. Por eso, si el robot es amarillo, se le suma el número de azules.</p>
+  <p><strong>Cómo:</strong> es una <strong>expresión condicional</strong>: <code>VALOR_SI_SÍ if CONDICIÓN else VALOR_SI_NO</code>. Primero se evalúa la condición (<code>c.yellow</code>); si es verdadera, el resultado es lo de la izquierda; si no, lo de la derecha. Es equivalente a:</p>
+<pre><code>if c.yellow:
+    row = self.n_robots_blue + c.id
+else:
+    row = c.id</code></pre>
+  </details>
+</div>
+
+<!-- ---------------------------------------------------------- -->
+<h3 id="f-world"><code>team_vsss/world.py</code></h3>
+<p>Define <strong>lo que una estrategia recibe y lo que responde</strong>. Es la frontera entre el simulador y la estrategia: una estrategia solo conoce estas tres clases.</p>
+<div class="table-wrap"><table>
+<tr><th>Clase</th><th>Qué representa</th><th>Campos</th></tr>
+<tr><td><code>Thing</code></td><td>Un robot o la pelota.</td><td><code>x</code>, <code>y</code> (m); <code>theta</code> (grados); <code>vx</code>, <code>vy</code> (m/s); <code>w</code> (<strong>grados/s</strong>); <code>id</code>.</td></tr>
+<tr><td><code>World</code></td><td>Todo lo que ve un equipo en un instante.</td><td><code>ball</code>; <code>mine</code> y <code>rivals</code> (listas de <code>Thing</code>); <code>length</code> = 1.5, <code>width</code> = 1.3, <code>goal_width</code> = 0.4; <code>omni</code>; <code>time</code> (s).</td></tr>
+<tr><td><code>Command</code></td><td>Una orden para un robot.</td><td><code>id</code>; <code>vx</code>, <code>vy</code> (m/s, marco de la cancha); <code>w</code> (<strong>rad/s</strong>).</td></tr>
+</table></div>
+
+<h4>La perspectiva: siempre atacando hacia +x</h4>
+<p>El equipo azul ataca hacia +x y el amarillo hacia −x. Para no escribir cada estrategia dos veces, <strong>al equipo amarillo se le muestra la cancha girada 180°</strong>. Así, toda estrategia cree que ataca hacia +x y que su arco está en x = −0.75.</p>
+<figure>
+<svg viewBox="0 0 680 200" role="img" aria-label="La cancha real y como la ve el equipo amarillo: girada 180 grados para que también ataque hacia +x">
+  <defs><marker id="arrK3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--svg-stroke)"/></marker></defs>
+  <text x="160" y="22" text-anchor="middle" font-size="16" font-weight="600">Cancha real</text>
+  <rect x="40" y="35" width="240" height="140" class="box2"/>
+  <circle cx="200" cy="80" r="7" style="fill:var(--svg-red)"/>
+  <rect x="220" y="125" width="18" height="18" style="fill:var(--svg-yellow);stroke:var(--svg-stroke)"/>
+  <line x1="220" y1="134" x2="190" y2="134" class="stroke" stroke-width="2" marker-end="url(#arrK3)"/>
+  <text x="48" y="170" font-size="13" class="muted">el amarillo ataca hacia −x</text>
+  <text x="340" y="110" text-anchor="middle" font-size="28">⟳</text>
+  <text x="340" y="135" text-anchor="middle" font-size="13" class="muted">180°</text>
+  <text x="520" y="22" text-anchor="middle" font-size="16" font-weight="600">Lo que ve la estrategia amarilla</text>
+  <rect x="400" y="35" width="240" height="140" class="box2"/>
+  <circle cx="480" cy="130" r="7" style="fill:var(--svg-red)"/>
+  <rect x="442" y="67" width="18" height="18" style="fill:var(--svg-yellow);stroke:var(--svg-stroke)"/>
+  <line x1="460" y1="76" x2="490" y2="76" class="stroke" stroke-width="2" marker-end="url(#arrK3)"/>
+  <text x="408" y="170" font-size="13" class="muted">(x, y) → (−x, −y) · θ → θ + 180°</text>
+</svg>
+<figcaption>Un giro, no un espejo: reflejar solo <span class="math">x</span> invertiría el sentido de giro de los robots.</figcaption>
+</figure>
+<ul>
+  <li><code>_rotate(thing)</code> gira una <code>Thing</code> 180°: cambia el signo de posición y velocidad y suma 180° al ángulo. El <code>% 360</code> mantiene el ángulo entre 0 y 360.</li>
+  <li><code>build_world(...)</code> convierte el <code>Frame</code> de rSoccer en el <code>World</code> de un equipo, girando todo si el equipo es amarillo.</li>
+  <li><code>command_to_field(c, im_yellow)</code> hace lo contrario con las órdenes: si el equipo es amarillo, deshace el giro antes de mandarla al simulador. (La velocidad de giro <code>w</code> no cambia de signo: girar 180° la cancha no cambia el sentido de giro.)</li>
+</ul>
+<div class="callout warn"><span class="lbl">Cuidado · Dos <code>w</code> distintas</span>
+<p><code>Thing.w</code> viene en <strong>grados/s</strong> (así lo entrega el simulador) y <code>Command.w</code> va en <strong>rad/s</strong> (así lo usa la cinemática). Tienen el mismo nombre y distinta unidad.</p>
+</div>
+
+<div class="question" id="q-world-libs">
+  <div class="qhead">What do these libraries do? <span class="where">world.py · línea 11 · <code>dataclasses</code> y <code>typing</code></span></div>
+  <details><summary>Ver respuesta</summary>
+  <p><strong><code>dataclasses</code></strong> trae el decorador <code>@dataclass</code>. Un decorador es una línea con <code>@</code> sobre una clase o función que le agrega comportamiento. <code>@dataclass</code> lee los campos declarados (<code>x: float</code>, <code>y: float</code>, …) y escribe automáticamente el <code>__init__</code>, entre otras cosas. Sin él, <code>Thing</code> necesitaría escribirse así:</p>
+<pre><code>class Thing:
+    def __init__(self, x, y, theta=0.0, vx=0.0, vy=0.0, w=0.0, id=0):
+        self.x = x
+        self.y = y
+        self.theta = theta
+        <span class="c"># ... y así con cada campo</span></code></pre>
+  <p>También genera una forma legible de imprimir el objeto (<code>Thing(x=0.1, y=0.2, ...)</code>) y de comparar dos objetos con <code>==</code>. Se usa para clases que sobre todo <em>guardan datos</em>.</p>
+  <p><strong><code>typing</code></strong> trae herramientas para describir tipos. <code>List[Thing]</code> significa “una lista de objetos <code>Thing</code>”. En versiones recientes de Python también se puede escribir <code>list[Thing]</code> sin importar nada (así lo hacen las estrategias).</p>
+  </details>
+</div>
+
+<div class="question" id="q-world-colon">
+  <div class="qhead">What does the : after the parameter do? <span class="where">world.py · línea 57 · <code>def _rotate(thing: Thing)</code></span></div>
+  <details><summary>Ver respuesta</summary>
+  <p>Es una <strong>anotación de tipo</strong> (<em>type hint</em>): dice qué tipo de valor se espera. <code>thing: Thing</code> significa “el parámetro <code>thing</code> debería ser un <code>Thing</code>”; <code>im_yellow: bool</code>, “debería ser verdadero o falso”.</p>
+  <p>Python <strong>no la verifica</strong> al ejecutar: si se pasa otro tipo, no hay error inmediato. Sirve como documentación para quien lee el código, y para que editores como VS Code ofrezcan autocompletado y avisen de errores. En una <code>@dataclass</code> la anotación tiene un papel extra: es lo que declara cada campo (<code>x: float</code>).</p>
+  </details>
+</div>
+
+<div class="question" id="q-world-arrow">
+  <div class="qhead">What is the -&gt; for? <span class="where">world.py · línea 63 · <code>def build_world(...) -&gt; World:</code></span></div>
+  <details><summary>Ver respuesta</summary>
+  <p>Es la anotación de tipo del <strong>valor que devuelve</strong> la función: <code>-&gt; World</code> significa “esta función devuelve un <code>World</code>”. Igual que la anotación con <code>:</code>, Python no la verifica; es documentación y ayuda para el editor. Leyendo solo la primera línea de la función ya se sabe qué recibe y qué entrega.</p>
+  </details>
+</div>
+
+<div class="question" id="q-world-helper">
+  <div class="qhead">What does this helper function do? <span class="where">world.py · línea 68 · <code>robot_thing(r)</code></span></div>
+  <details><summary>Ver respuesta</summary>
+  <p>Convierte un robot en el formato de rSoccer en una <code>Thing</code> nuestra. Hace falta porque los nombres de los campos no coinciden: rSoccer usa <code>v_x</code>, <code>v_y</code> y <code>v_theta</code>, y nosotros <code>vx</code>, <code>vy</code> y <code>w</code>. Se usa dentro de las comprensiones de lista de las líneas siguientes, una vez por cada robot:</p>
+<pre><code>blues = [robot_thing(r) for r in frame.robots_blue.values()]</code></pre>
+  <p>Está definida <em>dentro</em> de <code>build_world</code> (es una función anidada) porque solo se usa ahí. Así no queda disponible para el resto del programa ni lo desordena.</p>
+  </details>
+</div>
+
+<!-- ---------------------------------------------------------- -->
+<h3 id="f-match"><code>team_vsss/match.py</code></h3>
+<p>Es el archivo central: define <code>MatchVSS</code>, el <strong>partido</strong>. Hereda de <code>VSSBaseEnv</code>, una clase de rSoccer que ya sabe crear el simulador, avanzar un paso, dibujar y reiniciar. <code>VSSBaseEnv</code> deja cuatro métodos sin definir; cada entorno los completa:</p>
+<div class="table-wrap"><table>
+<tr><th>Método</th><th>Qué decide</th><th>En <code>MatchVSS</code></th></tr>
+<tr><td><code>_get_commands(actions)</code></td><td>Cómo convertir órdenes en velocidades de rueda.</td><td>Deshace la perspectiva, limita la aceleración, pasa al marco del robot y aplica la cinemática.</td></tr>
+<tr><td><code>_frame_to_observations()</code></td><td>Qué información se devuelve en cada paso.</td><td>El <code>Frame</code> tal cual.</td></tr>
+<tr><td><code>_calculate_reward_and_done()</code></td><td>Si la jugada terminó (y una “recompensa” que solo importa para aprendizaje automático).</td><td>Termina con gol o con pelota trabada. Recompensa 0.</td></tr>
+<tr><td><code>_get_initial_positions_frame()</code></td><td>Dónde empieza cada cosa.</td><td>La formación de saque.</td></tr>
+</table></div>
+<p>Con esos cuatro, <code>VSSBaseEnv.step(acciones)</code> hace un paso completo. Este patrón (una clase base que llama a métodos que la clase hija completa) es muy común; se llama <em>template method</em>.</p>
+
+<h4>El corazón: <code>_get_commands</code></h4>
+<pre><code>for team, commands in actions.items():
+    for c in commands:
+        c = command_to_field(c, yellow)                                 <span class="c"># 1. deshace la perspectiva</span>
+        vx_g, vy_g = self._limit_acceleration(team, c.id, c.vx, c.vy)   <span class="c"># 2. suaviza</span>
+        vx, vy = rb.global_to_local(vx_g, vy_g, robots[c.id].theta)     <span class="c"># 3. marco del robot</span>
+        if self.omni[team]:
+            w0, w1, w2 = rb.omni_wheels(vx, vy, c.w)                    <span class="c"># 4. cinemática</span>
+        else:
+            w0, w1 = rb.differential_wheels(vx, c.w)
+            w2 = 0.0</code></pre>
+<p>Si un robot hace algo raro, conviene revisar estos cuatro pasos en orden. <code>actions.items()</code> recorre el diccionario de acciones, dando en cada vuelta el nombre del equipo y su lista de comandos.</p>
+
+<h4>Las demás piezas</h4>
+<ul>
+  <li><code>world(team)</code>: lo que se le da a cada estrategia (<code>'blue'</code> o <code>'yellow'</code>).</li>
+  <li><code>_calculate_reward_and_done</code>: hay gol si la pelota cruza <span class="math">x = ±0.75</span>. Además, si la pelota pasa 10 segundos sin moverse más de 3 cm (<code>_ball_stuck</code>), la jugada termina como “pelota trabada”, el equivalente al <em>free ball</em> del reglamento.</li>
+  <li><code>step(actions)</code>: además de avanzar, cuenta el tiempo total y devuelve cinco valores: observación, recompensa, si terminó la jugada, si terminó el partido, e información extra (<code>{"event": ...}</code>).</li>
+  <li><code>_render()</code>: llama al dibujo de rSoccer, <strong>voltea la imagen</strong> y agrega el marcador. rSoccer dibuja el eje +y hacia abajo (en pygame, la <em>y</em> de la pantalla crece hacia abajo); voltear la imagen hace que lo que se ve coincida con las coordenadas del simulador.</li>
+</ul>
+
+<div class="question" id="q-match-star">
+  <div class="qhead">What is the ** doing inside the curly braces? <span class="where">match.py · línea 24 · <code>{**VSSBaseEnv.metadata, "render_fps": 40}</code></span></div>
+  <details><summary>Ver respuesta</summary>
+  <p><code>**</code> dentro de llaves <strong>desempaca un diccionario</strong>: copia todas sus parejas clave-valor dentro del diccionario nuevo. Después se agrega <code>"render_fps": 40</code>, que, si la clave ya existía, la reemplaza. El resultado es una <em>copia</em> de la configuración de la clase madre con un solo valor cambiado.</p>
+<pre><code>a = {"x": 1, "render_fps": 60}
+b = {**a, "render_fps": 40}     <span class="c"># b = {"x": 1, "render_fps": 40}; a no cambia</span></code></pre>
+  <p>Se hace así (y no <code>VSSBaseEnv.metadata["render_fps"] = 40</code>) para no modificar la configuración de rSoccer, que afectaría a todos sus entornos. El valor 40 hace que el partido se vea a velocidad real: cada paso simula 25 ms, es decir, 40 pasos por segundo.</p>
+  </details>
+</div>
+
+<div class="question" id="q-match-sim">
+  <div class="qhead">Why can't we just use the simulator that VSSBaseEnv created? <span class="where">match.py · línea 34</span></div>
+  <details><summary>Ver respuesta</summary>
+  <p>Porque <code>VSSBaseEnv</code>, dentro de su <code>__init__</code>, siempre crea un <code>RSimVSS</code>: la clase original de rSoccer, que crea el simulador <strong>sin robots omni</strong> y manda solo 2 velocidades por robot. <code>VSSBaseEnv</code> no ofrece una forma de elegir otra clase. La solución es dejar que lo cree, detenerlo (<code>self.rsim.stop()</code>, que libera su memoria) y reemplazarlo por un <code>RSimVSSMixed</code>, que sí admite robots omni. También se vuelven a leer las medidas de la cancha (<code>self.field</code>) desde el simulador nuevo.</p>
+  <p>Otra solución sería modificar rSoccer, pero entonces el equipo tendría que mantener también un fork de rSoccer. Heredar y reemplazar mantiene rSoccer intacto.</p>
+  </details>
+</div>
+
+<div class="question" id="q-match-dict">
+  <div class="qhead">What is a dictionary, and why is its key a pair (team, id)? <span class="where">match.py · línea 47 · <code>self._prev_vel = {}</code></span></div>
+  <details><summary>Ver respuesta</summary>
+  <p>Un <strong>diccionario</strong> guarda parejas <em>clave → valor</em>, y permite buscar un valor por su clave en lugar de por su posición: <code>goals = {"blue": 0, "yellow": 0}</code>; <code>goals["blue"]</code> da 0. <code>{}</code> es un diccionario vacío.</p>
+  <p>Aquí se guarda la última velocidad de cada robot. Un robot no se identifica solo por su <code>id</code>, porque los ids se repiten entre equipos (hay un azul 0 y un amarillo 0). Por eso la clave es una <strong>tupla</strong> (un grupo fijo de valores) con los dos datos: <code>("blue", 0)</code> y <code>("yellow", 0)</code> son claves distintas. Las tuplas pueden ser claves de diccionario; las listas no, porque pueden cambiar.</p>
+  <p><code>self._prev_vel.get((team, rid), (0.0, 0.0))</code> busca la clave y, si no existe todavía (el primer paso), devuelve <code>(0.0, 0.0)</code> en lugar de dar error.</p>
+  </details>
+</div>
+
+<div class="question" id="q-match-theta">
+  <div class="qhead">Why do we need the robot's theta to convert the command? <span class="where">match.py · línea 67</span></div>
+  <details><summary>Ver respuesta</summary>
+  <p>El <code>Command</code> dice hacia dónde ir <strong>en la cancha</strong> (por ejemplo, “hacia +x”). Pero las ruedas van atornilladas al robot: solo entienden “hacia mi frente” o “hacia mi izquierda”. Qué tanto de “hacia +x” es “hacia mi frente” depende de hacia dónde mira el robot, que es su <code>theta</code>.</p>
+  <p>Ejemplo: si el robot mira hacia +x (θ = 0°), “ir hacia +x” es “ir hacia el frente”. Si mira hacia +y (θ = 90°), “ir hacia +x” es “ir hacia su derecha”. <code>global_to_local</code> hace esa rotación usando θ.</p>
+  </details>
+</div>
+
+<div class="question" id="q-match-180">
+  <div class="qhead">Why do yellow robots start with theta=180? <span class="where">match.py · línea 117</span></div>
+  <details><summary>Ver respuesta</summary>
+  <p>Porque θ = 180° es mirar hacia −x, que es hacia donde ataca el equipo amarillo (el arco azul está en x = −0.75). Así, al saque, cada equipo mira hacia el arco rival. Las posiciones amarillas son las azules giradas 180° (<code>-x, -y</code>), la misma idea de la perspectiva de <code>world.py</code>.</p>
+  </details>
+</div>
+
+<div class="question" id="q-match-accel">
+  <div class="qhead">What would happen to the robot if we removed this function? <span class="where">match.py · línea 139 · <code>_limit_acceleration</code></span></div>
+  <details><summary>Ver respuesta</summary>
+  <p>La función impide que la velocidad pedida cambie más de <code>max_accel × 0.025 s</code> en un paso (con 3 m/s², 7.5 cm/s por paso). Sin ella, un robot que está quieto recibiría, por ejemplo, “ve a 0.5 m/s” de golpe. Los motores tienen un <strong>torque máximo</strong> (la fuerza de giro que pueden aplicar) y, ante un arranque brusco, llegan a ese límite. Al moverse de lado, la rueda trasera necesita el doble de velocidad que las otras y se satura primero: las ruedas dejan de empujar en la proporción correcta y <strong>el robot se tuerce</strong>.</p>
+  <p>Medido en el simulador: arrancando de golpe hacia un lado a 0.5 m/s, el robot gira unos 13° sin que nadie se lo pida (a 1 m/s, unos 50°). Subiendo la velocidad poco a poco, gira apenas 1.3°. El robot real tendrá el mismo problema, y su control de motores también deberá limitar la aceleración. Esta función imita ese control.</p>
+  </details>
+</div>
+
+<div class="question" id="q-match-mod">
+  <div class="qhead">What do // and % compute here? <span class="where">match.py · línea 162 · <code>{t // 60}:{t % 60:02d}</code></span></div>
+  <details><summary>Ver respuesta</summary>
+  <p><code>//</code> es la <strong>división entera</strong> (descarta los decimales) y <code>%</code> es el <strong>residuo</strong> (lo que sobra de la división). Con <code>t</code> en segundos: <code>t // 60</code> son los minutos completos y <code>t % 60</code> los segundos que sobran. Con <code>t = 135</code>: 135 // 60 = 2 y 135 % 60 = 15, así que el reloj muestra <code>2:15</code>.</p>
+  <p>El <code>:02d</code> dentro del f-string significa “número entero (<code>d</code>) con al menos 2 dígitos, rellenando con ceros”: 5 segundos se muestran como <code>05</code>, para que se lea <code>2:05</code> y no <code>2:5</code>.</p>
+  </details>
+</div>
+
+<!-- ---------------------------------------------------------- -->
+<h3 id="f-strategies"><code>team_vsss/strategies/</code></h3>
+<p>Una estrategia es cualquier clase con un método <code>decide(world)</code> que recibe un <code>World</code> y devuelve una lista de <code>Command</code>, a lo más uno por robot. Se llama 40 veces por segundo.</p>
+
+<h4><code>strategies/__init__.py</code>: el catálogo</h4>
+<pre><code>from .basic import Basic
+from .still import Still
+
+STRATEGIES = {
+    "basic": Basic,
+    "still": Still,
+}</code></pre>
+<p>El diccionario <code>STRATEGIES</code> relaciona un nombre (el que se escribe en <code>--blue basic</code>) con la clase. <code>view_match.py</code> busca ahí la estrategia pedida y crea un objeto con <code>STRATEGIES[nombre]()</code>.</p>
+
+<div class="question" id="q-strat-import">
+  <div class="qhead">Why must a strategy be imported before it can be added to the dictionary? <span class="where">strategies/__init__.py · línea 2</span></div>
+  <details><summary>Ver respuesta</summary>
+  <p>Porque en Python un nombre solo se puede usar si existe en el archivo actual. La clase <code>Basic</code> está definida en <code>basic.py</code>; desde <code>__init__.py</code>, el nombre <code>Basic</code> no existe hasta que se importa con <code>from .basic import Basic</code>. Si se agregara <code>"basic": Basic</code> sin el import, Python daría <code>NameError: name 'Basic' is not defined</code>.</p>
+  <p>Agregar una estrategia nueva requiere siempre dos líneas: el <code>import</code> y la entrada del diccionario.</p>
+  </details>
+</div>
+
+<h4><code>strategies/still.py</code>: la estrategia quieta</h4>
+<pre><code>class Still:
+    def decide(self, world: World) -&gt; list[Command]:
+        return [Command(r.id) for r in world.mine]</code></pre>
+<p>Manda a cada robot un <code>Command</code> con velocidad 0 (los valores por defecto). Es útil como rival para comprobar que una estrategia anota.</p>
+
+<div class="question" id="q-still-wall">
+  <div class="qhead">Why does a "still" robot behave like a wall instead of being pushed? <span class="where">still.py · línea 7</span></div>
+  <details><summary>Ver respuesta</summary>
+  <p>Porque “velocidad 0” no significa “motores apagados”. Significa que cada motor intenta <strong>activamente</strong> mantener su rueda a 0 rad/s, aplicando todo su torque si algo intenta moverla: funciona como un freno. Además, las ruedas agarran el piso. Empujar la pelota contra ese robot no lo mueve. Lo mismo pasa con el robot real cuando su control manda velocidad 0. Por eso un robot quieto, colocado entre la pelota y el arco, bloquea los tiros.</p>
+  </details>
+</div>
+
+<h4><code>strategies/basic.py</code>: la estrategia de ejemplo</h4>
+<p>Asigna un papel a cada robot según su <code>id</code>:</p>
+<ul>
+  <li><strong>Delantero</strong> (id 0): va a un punto detrás de la pelota, alineado con el arco rival, y desde ahí la empuja. Apunta al lado del arco que deja libre el portero rival.</li>
+  <li><strong>Defensa</strong> (id 1): se coloca en el punto al 40% del camino entre su arco y la pelota, sin pasar de <span class="math">x = −0.1</span>.</li>
+  <li><strong>Portero</strong> (id 2): se queda a 7 cm de su línea de gol, siguiendo la <em>y</em> de la pelota sin salirse del ancho del arco.</li>
+</ul>
+<p>Todo se construye con <code>go_to(robot, x, y, omni, look_degrees=None)</code>, que lleva un robot hacia el punto <span class="math">(x, y)</span>. Si el robot es omni, además lo orienta hacia <code>look_degrees</code> (si no se da, hacia +x, el arco rival). <code>angle_error</code> calcula cuánto le falta girar.</p>
+
+<div class="question" id="q-basic-kp">
+  <div class="qhead">What does a proportional controller do, and what happens if KP is too big? <span class="where">basic.py · línea 12</span></div>
+  <details><summary>Ver respuesta</summary>
+  <p>Un <strong>controlador proporcional</strong> (P) calcula la acción en proporción al <strong>error</strong> (lo que falta para llegar): <span class="math">velocidad = KP × distancia al objetivo</span>. Lejos del objetivo, el robot va rápido; cerca, despacio; en el objetivo, se detiene. Con <code>KP = 4</code>, a 10 cm del objetivo pide 0.4 m/s. <code>min(V_MAX, ...)</code> pone un tope para que lejos no pida velocidades imposibles.</p>
+  <ul>
+    <li><strong>KP muy pequeño:</strong> el robot se acerca muy lento al final y parece “flojo”.</li>
+    <li><strong>KP muy grande:</strong> llega con demasiada velocidad, se pasa del objetivo, regresa, se vuelve a pasar: <strong>oscila</strong>. Como la estrategia solo decide cada 25 ms y los motores tardan en reaccionar, un KP excesivo puede hacer que nunca se quede quieto.</li>
+  </ul>
+  <p><code>KP_ANG</code> es lo mismo para el ángulo: velocidad de giro proporcional a lo que falta girar.</p>
+  </details>
+</div>
+
+<div class="question" id="q-basic-angle">
+  <div class="qhead">Why do we add 180, take % 360 and then subtract 180? <span class="where">basic.py · línea 19</span></div>
+  <details><summary>Ver respuesta</summary>
+  <p>Para obtener el <strong>giro más corto</strong>, entre −180° y +180°. Restar dos ángulos directamente puede dar un giro innecesariamente largo: si el robot está en 350° y quiere llegar a 10°, la resta da 10 − 350 = −340°, es decir, casi una vuelta completa hacia un lado, cuando bastaba girar 20° hacia el otro.</p>
+  <p>Con la fórmula: (10 − 350 + 180) % 360 − 180 = (−160) % 360 − 180 = 200 − 180 = <strong>20°</strong>. En Python, <code>%</code> con un número negativo da un resultado positivo (−160 % 360 = 200), y eso es lo que hace funcionar el truco: sumar 180 y tomar el residuo deja el valor entre 0 y 360, y restar 180 lo centra entre −180 y 180.</p>
+  </details>
+</div>
+
+<div class="question" id="q-basic-diff">
+  <div class="qhead">Why does a differential robot need to turn before moving? <span class="where">basic.py · línea 38</span></div>
+  <details><summary>Ver respuesta</summary>
+  <p>Porque sus dos ruedas normales solo empujan hacia adelante o hacia atrás; no pueden deslizarse de lado. Si el objetivo está a su izquierda, no hay combinación de velocidades de rueda que lo mueva directamente hacia allá: primero tiene que girar hasta apuntar al objetivo.</p>
+  <p>Por eso <code>go_to</code>, para un diferencial: calcula hacia dónde está el objetivo (<code>atan2</code> da ese ángulo), lo hace girar en esa dirección y, mientras no esté alineado, reduce su avance multiplicando por <code>cos(err)</code> (alineado: ×1; perpendicular: ×0). Sin ese freno avanzaría mientras gira y dibujaría espirales. Como un diferencial también puede ir en reversa, si girar hacia atrás es más corto, elige la reversa.</p>
+  </details>
+</div>
+
+<div class="question" id="q-basic-min">
+  <div class="qhead">What does min(..., key=lambda ...) do? <span class="where">basic.py · línea 61</span></div>
+  <details><summary>Ver respuesta</summary>
+<pre><code>keeper = min(m.rivals, key=lambda r: abs(r.x - rival_goal[0]), default=None)</code></pre>
+  <p><code>min(lista)</code> devuelve el menor elemento. Pero los rivales son robots, no números: ¿qué significa “el menor robot”? El parámetro <code>key</code> lo define: es una función que se aplica a cada elemento, y <code>min</code> compara los resultados. Aquí, para cada rival <code>r</code>, se calcula su distancia en x al arco rival; <code>min</code> devuelve el rival con la distancia menor, es decir, el más cercano a su arco: probablemente el portero.</p>
+  <p><code>lambda r: ...</code> es una <strong>función anónima</strong>: una función de una sola expresión, escrita en el mismo lugar donde se usa. Equivale a:</p>
+<pre><code>def distancia_al_arco(r):
+    return abs(r.x - rival_goal[0])
+
+keeper = min(m.rivals, key=distancia_al_arco, default=None)</code></pre>
+  <p><code>default=None</code> evita un error si la lista está vacía (un partido sin rivales).</p>
+  </details>
+</div>
+
+<div class="question" id="q-basic-behind">
+  <div class="qhead">What is the 'behind' point, and why 8 cm? <span class="where">basic.py · línea 70</span></div>
+  <details><summary>Ver respuesta</summary>
+  <p>Para empujar la pelota hacia el arco, el robot debe estar <strong>del otro lado</strong> de la pelota respecto al arco. El punto <code>behind</code> está sobre la línea arco→pelota, prolongada 8 cm más allá de la pelota (<code>ux, uy</code> es la dirección pelota→arco; restarla multiplicada por 0.08 va 8 cm hacia atrás).</p>
+  <p>El delantero va primero a ese punto y, cuando está a menos de 5 cm, cambia su objetivo a un punto 10 cm <em>adelante</em> de la pelota: al avanzar, la empuja hacia el arco.</p>
+  <p>Los 8 cm salen de las medidas: el radio de la pelota (2.15 cm) más medio lado del robot (3.75 cm) son 5.9 cm, la distancia mínima entre centros cuando se tocan. Con 8 cm queda un margen de unos 2 cm: el robot se coloca sin chocar la pelota antes de tiempo.</p>
+  </details>
+</div>
+
+<h4>Cómo agregar una estrategia nueva</h4>
+<ol>
+  <li>Crear <code>team_vsss/strategies/mi_estrategia.py</code> con una clase que tenga <code>decide</code>. Su <code>__init__</code> no debe recibir argumentos.</li>
+  <li>En <code>strategies/__init__.py</code>, agregar <code>from .mi_estrategia import MiEstrategia</code> y la entrada <code>"mia": MiEstrategia</code>.</li>
+  <li>Correr <code>python scripts/view_match.py --blue mia --yellow basic</code>.</li>
+</ol>
+<p>Reglas: a lo más un <code>Command</code> por robot y con un <code>id</code> que exista; un robot sin comando recibe velocidad 0 (frena); si <code>world.omni</code> es falso, la parte lateral de la velocidad se ignora y hay que girar el robot con <code>w</code> (o usar <code>go_to</code>).</p>
+
+<!-- ---------------------------------------------------------- -->
+<h3 id="f-view"><code>scripts/view_match.py</code></h3>
+<p>Es el programa que se ejecuta para ver un partido. Lee las opciones de la terminal, crea el partido y las dos estrategias, y repite el ciclo: pedir decisiones, avanzar un paso, reiniciar si hubo gol.</p>
+<pre><code>env.reset()
+time_over = False
+while not time_over:
+    actions = {
+        "blue": blue.decide(env.world("blue")),
+        "yellow": yellow.decide(env.world("yellow")),
+    }
+    _, _, play_over, time_over, info = env.step(actions)
+    if play_over:
+        print(f"{info['event']}  -&gt;  {env.goals}")
+        env.reset()</code></pre>
+<p><code>_, _, play_over, time_over, info = env.step(actions)</code> recibe los cinco valores que devuelve <code>step</code> y los reparte en variables; <code>_</code> es un nombre convencional para “este valor no lo necesito”.</p>
+
+<div class="question" id="q-view-argparse">
+  <div class="qhead">What is argparse for? <span class="where">view_match.py · línea 9</span></div>
+  <details><summary>Ver respuesta</summary>
+  <p><code>argparse</code> es la librería estándar de Python para leer <strong>opciones de la línea de comandos</strong>, como <code>--yellow still</code> o <code>--duration 60</code>. Cada <code>p.add_argument(...)</code> declara una opción. <code>argparse</code> se encarga de leerlas, convertir su tipo (<code>type=float</code>), validar (<code>choices=STRATEGIES</code> solo acepta nombres que existan en el catálogo), poner valores por defecto y generar la ayuda de <code>--help</code>. Después, <code>args.yellow</code> contiene lo que se escribió. Las opciones con guion se convierten en atributos con guion bajo: <code>--no-window</code> se lee como <code>args.no_window</code>.</p>
+  </details>
+</div>
+
+<div class="question" id="q-view-try">
+  <div class="qhead">What do try / except / finally do here? <span class="where">view_match.py · línea 32</span></div>
+  <details><summary>Ver respuesta</summary>
+  <p>Manejan errores y salidas inesperadas:</p>
+  <ul>
+    <li><code>try:</code> ejecuta el bloque normalmente.</li>
+    <li><code>except KeyboardInterrupt:</code> se ejecuta si ocurre ese error. <kbd>Ctrl</kbd>+<kbd>C</kbd> en la terminal produce un <code>KeyboardInterrupt</code>; aquí se “atrapa” con <code>pass</code> (no hacer nada) para que el programa no termine con un mensaje de error largo.</li>
+    <li><code>finally:</code> se ejecuta <strong>siempre</strong> al salir: si el partido terminó normalmente, si se presionó <kbd>Ctrl</kbd>+<kbd>C</kbd> o incluso si hubo otro error. Ahí se imprime el marcador final y se cierra la ventana (<code>env.close()</code>), para no dejarla abierta y colgada.</li>
+  </ul>
+  </details>
+</div>
+
+<div class="question" id="q-view-reset">
+  <div class="qhead">Why do we call env.reset() after every goal? <span class="where">view_match.py · línea 42</span></div>
+  <details><summary>Ver respuesta</summary>
+  <p>Después de un gol, la pelota está dentro del arco y la jugada terminó (<code>play_over</code> es verdadero). Si no se reiniciara, la pelota seguiría ahí y cada paso contaría otro gol. <code>env.reset()</code> regresa la pelota y los robots a la formación de saque. El marcador <strong>no</strong> se borra porque <code>MatchVSS.reset()</code> no toca <code>self.goals</code>: el marcador vive mientras viva el partido. Lo mismo ocurre cuando la pelota se traba.</p>
+  </details>
+</div>
+
+<!-- ---------------------------------------------------------- -->
+<h3 id="f-check"><code>scripts/check_omni.py</code></h3>
+<p>Es una <strong>prueba</strong> del robot omni que usa <code>robosim</code> directamente, sin rSoccer ni estrategias. Manda movimientos simples (adelante, de lado, girar) durante un segundo y compara lo que el robot hizo contra lo que debería haber hecho. Se corre <strong>cada vez que se modifica rSim</strong>:</p>
+<pre><code>python scripts/check_omni.py</code></pre>
+<p>Resultado esperado con el rSim actual:</p>
+<pre><code>forward                  did: dx=+0.44 dy=+0.00 turn=  +0.0°   expected: dx=+0.44 dy=+0.00 turn=  +0.0°
+sideways (left)          did: dx=-0.01 dy=+0.44 turn=  +1.3°   expected: dx=+0.00 dy=+0.44 turn=  +0.0°
+turn in place            did: dx=-0.00 dy=+0.00 turn= +43.0°   expected: dx=+0.00 dy=+0.00 turn= +44.4°
+forward, facing +y       did: dx=+0.00 dy=+0.44 turn=  +0.0°   expected: dx=+0.00 dy=+0.44 turn=  +0.0°</code></pre>
+<p>Cómo leerlo: si un signo sale al revés (va a la derecha cuando se pidió izquierda, o gira en sentido contrario), hay un error de convención en la cinemática o en rSim. Si las magnitudes salen muy distintas, revisar que las medidas de este archivo coincidan con <code>vssconfig.h</code>. Diferencias de 1 o 2 cm o de pocos grados son normales.</p>
+
+<div class="question" id="q-check-ramp">
+  <div class="qhead">Why do we increase the speed gradually (a "ramp") instead of all at once? <span class="where">check_omni.py · línea 27</span></div>
+  <details><summary>Ver respuesta</summary>
+  <p>Para que la prueba mida la <strong>cinemática</strong> y no el límite de los motores. Si se pidiera la velocidad completa desde el primer paso, los motores llegarían a su torque máximo y el robot se torcería (unos 13° al moverse de lado, ver la pregunta sobre <code>_limit_acceleration</code>). Ese giro no indicaría un error de signos ni de fórmulas, pero confundiría la prueba. Con la rampa (la velocidad sube durante los primeros 10 pasos) el robot se mueve limpio. Por eso los valores “expected” no son 0.50 m sino 0.44 m: ya descuentan el tiempo de la rampa.</p>
+  </details>
+</div>
+</section>
+
+<!-- ================================================================== -->
+<section id="rsim">
+<h2><span class="num">5</span>Modificar rSim</h2>
+
+<h3 id="rsim-que">Qué es y dónde está</h3>
+<p>rSim es la parte del simulador que construye la física del partido. Está escrito en <strong>C++</strong>, un lenguaje más rápido que Python pero que necesita <strong>compilarse</strong>: traducirse a un programa ejecutable antes de usarse. Por eso, a diferencia del código de <code>team-template</code>, cada cambio en rSim requiere recompilar.</p>
+<p>El equipo trabaja sobre un <strong>fork</strong>: una copia propia del rSim original, en <code>https://github.com/Roborregos-VSSS2-2027/rSim</code>. Ese fork ya incluye el robot omnidireccional. Es un repositorio <strong>separado</strong> de <code>LARC-VSSS-2027</code>.</p>
+
+<h4>Cuándo hay que modificar rSim</h4>
+<div class="table-wrap"><table>
+<tr><th>Si se quiere cambiar…</th><th>¿Dónde?</th></tr>
+<tr><td>Una estrategia, el partido, la cinemática en Python, el marcador</td><td><code>team-template</code> (Python, sin recompilar)</td></tr>
+<tr><td>Medidas del robot, ángulos de las ruedas, masas, fricción, potencia de los motores</td><td>rSim (<code>vssconfig.h</code>)</td></tr>
+<tr><td>Medidas de la cancha, la pelota, el rebote</td><td>rSim (<code>vssconfig.h</code>)</td></tr>
+<tr><td>Cómo se construye el robot (número de ruedas, piezas)</td><td>rSim (<code>vssrobot.cpp</code>)</td></tr>
+<tr><td>Qué parámetros se pueden pasar desde Python</td><td>rSim (<code>robosim_py.cpp</code> y los archivos que los usan)</td></tr>
+</table></div>
+
+<h3 id="cpp">Leer C++ sin saber C++</h3>
+<p>Para cambiar medidas basta con poder <em>leer</em> C++. Comparado con Python:</p>
+<div class="table-wrap"><table>
+<tr><th>C++</th><th>Equivalente en Python</th><th>Qué significa</th></tr>
+<tr><td><code>double Radius = 0.0375;</code></td><td><code>Radius = 0.0375</code></td><td>Variable con su <strong>tipo</strong> escrito antes: <code>double</code> = número con decimales, <code>int</code> = entero, <code>bool</code> = verdadero/falso. Cada instrucción termina en <code>;</code>.</td></tr>
+<tr><td><code>// comentario</code></td><td><code># comentario</code></td><td>Texto que el compilador ignora.</td></tr>
+<tr><td><code>{ ... }</code></td><td>la sangría</td><td>Las llaves marcan dónde empieza y termina un bloque.</td></tr>
+<tr><td><code>double getRadius() { return this-&gt;Radius; }</code></td><td><code>def get_radius(self): return self.Radius</code></td><td>Función que devuelve un <code>double</code>. <code>this</code> es como <code>self</code>.</td></tr>
+<tr><td><code>for (int i = 0; i &lt; nWheels; i++)</code></td><td><code>for i in range(nWheels):</code></td><td>Ciclo: empieza en 0, sigue mientras <code>i &lt; nWheels</code>, suma 1 cada vuelta.</td></tr>
+<tr><td><code>omni ? 3 : 2</code></td><td><code>3 if omni else 2</code></td><td>Expresión condicional (como la de <code>simulator.py</code>).</td></tr>
+<tr><td><code>Wheel *wheels[3]</code></td><td>(lista de 3 elementos)</td><td>Arreglo de 3 <strong>punteros</strong>: “direcciones” de objetos <code>Wheel</code>. <code>nullptr</code> = “no apunta a nada” (como <code>None</code>). <code>-&gt;</code> accede a un atributo a través de un puntero.</td></tr>
+</table></div>
+<p>Los archivos <code>.h</code> (<em>headers</em>) <strong>declaran</strong> qué existe: clases, sus atributos y qué funciones tienen. Los <code>.cpp</code> contienen el <strong>código</strong> de esas funciones. Si se agrega un atributo o una función, normalmente hay que tocar ambos.</p>
+
+<h3 id="rsim-archivos">Los archivos de rSim</h3>
+<p>Todo el código relevante está en <code>rSim/src/robosim/</code>. Los archivos que empiezan con <code>ssl</code> son de otra liga y no se usan. Los de VSS:</p>
+<div class="table-wrap"><table>
+<tr><th>Archivo</th><th>Qué contiene</th></tr>
+<tr><td><code>vssconfig.h</code></td><td><strong>Todas las medidas y constantes</strong>: cancha (clase <code>Field</code>), pelota y física general (<code>World</code>), robot (<code>Robot</code>). Es el archivo que más se modifica.</td></tr>
+<tr><td><code>vssrobot.h</code> / <code>.cpp</code></td><td>Cómo se arma un robot: el chasis (una caja), las ruedas (cilindros), las bisagras que las unen al chasis y los motores. Aquí se decide si el robot tiene 2 o 3 ruedas.</td></tr>
+<tr><td><code>vssworld.h</code> / <code>.cpp</code></td><td>El mundo: paredes, contactos y fricción, cómo se aplican las velocidades de rueda (<code>setActions</code>) y qué estado se devuelve (<code>getState</code>).</td></tr>
+<tr><td><code>robosim_py.cpp</code></td><td>Lo que Python puede ver de rSim: la clase <code>robosim.VSS</code> y sus parámetros, incluidos <code>omni_blue</code> y <code>omni_yellow</code>.</td></tr>
+<tr><td><code>physics/</code></td><td>Piezas básicas sobre ODE (caja, cilindro, esfera). Rara vez se tocan.</td></tr>
+</table></div>
+<p>Las constantes del robot en <code>vssconfig.h</code> (clase <code>Robot</code>):</p>
+<div class="table-wrap"><table>
+<tr><th>Constante</th><th>Valor</th><th>Significado</th></tr>
+<tr><td><code>Radius</code></td><td>0.0375</td><td>Mitad del lado del chasis (m). El reglamento permite un cubo de 7.5 cm, así que ya es el máximo.</td></tr>
+<tr><td><code>Height</code></td><td>0.056</td><td>Altura del chasis (m).</td></tr>
+<tr><td><code>WheelRadius</code>, <code>WheelThickness</code></td><td>0.026, 0.0025</td><td>Radio y grosor de las ruedas (m).</td></tr>
+<tr><td><code>BodyMass</code>, <code>WheelMass</code></td><td>0.120, 0.015</td><td>Masas (kg).</td></tr>
+<tr><td><code>WheelMotorMaxRPM</code></td><td>440</td><td>Velocidad máxima de los motores (revoluciones por minuto).</td></tr>
+<tr><td><code>WheelMotorMaxTorque</code></td><td>0.0725</td><td>Torque máximo de los motores (N·m): qué tan rápido aceleran.</td></tr>
+<tr><td><code>WheelTangentFriction</code></td><td>0.8</td><td>Agarre en la dirección de rodado.</td></tr>
+<tr><td><code>OmniWheel0Angle</code> … <code>OmniWheel2Angle</code></td><td>60, 180, 300</td><td>Ángulos de las ruedas omni (grados desde el frente).</td></tr>
+<tr><td><code>OmniWheelPerpendicularFriction</code></td><td>0.05</td><td>Agarre lateral de las ruedas omni (casi nada: imita los rodillos).</td></tr>
+</table></div>
+<p>Estos valores son los del robot de ejemplo de rSim, no los del robot del equipo. Cuando el robot real exista, conviene medirlo (con regla, báscula y hojas de datos de los motores) y actualizar estos números.</p>
+
+<h3 id="rsim-flujo">El proceso, paso a paso</h3>
+<p>Todo cambio a rSim sigue el mismo ciclo. Supone que <code>team-template</code> ya está instalado (capítulo 2) y que se cuenta con acceso de escritura al fork.</p>
+<figure>
+<svg viewBox="0 0 680 150" role="img" aria-label="Ciclo de trabajo: clonar, rama, editar, compilar, probar, commit y pull request, etiqueta, equipo actualiza">
+  <defs><marker id="arrK6" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--svg-stroke)"/></marker></defs>
+  <g font-size="14">
+    <rect x="5" y="20" width="90" height="50" rx="6" class="box2"/><text x="50" y="42" text-anchor="middle">1. clonar</text><text x="50" y="60" text-anchor="middle" class="muted" font-size="12">(una vez)</text>
+    <rect x="115" y="20" width="90" height="50" rx="6" class="box"/><text x="160" y="50" text-anchor="middle">2. rama</text>
+    <rect x="225" y="20" width="90" height="50" rx="6" class="box"/><text x="270" y="50" text-anchor="middle">3. editar</text>
+    <rect x="335" y="20" width="100" height="50" rx="6" class="box"/><text x="385" y="50" text-anchor="middle">4. compilar</text>
+    <rect x="455" y="20" width="90" height="50" rx="6" class="box"/><text x="500" y="50" text-anchor="middle">5. probar</text>
+    <rect x="565" y="20" width="110" height="50" rx="6" class="box"/><text x="620" y="42" text-anchor="middle">6. commit</text><text x="620" y="60" text-anchor="middle">y pull request</text>
+    <rect x="335" y="95" width="100" height="45" rx="6" class="box"/><text x="385" y="122" text-anchor="middle">7. etiqueta</text>
+    <rect x="455" y="95" width="220" height="45" rx="6" class="box2"/><text x="565" y="122" text-anchor="middle">8. el equipo reinstala</text>
+  </g>
+  <g class="stroke" stroke-width="1.5">
+    <line x1="95" y1="45" x2="113" y2="45" marker-end="url(#arrK6)"/>
+    <line x1="205" y1="45" x2="223" y2="45" marker-end="url(#arrK6)"/>
+    <line x1="315" y1="45" x2="333" y2="45" marker-end="url(#arrK6)"/>
+    <line x1="435" y1="45" x2="453" y2="45" marker-end="url(#arrK6)"/>
+    <line x1="545" y1="45" x2="563" y2="45" marker-end="url(#arrK6)"/>
+    <path d="M620,70 L620,85 L385,85 L385,93" marker-end="url(#arrK6)"/>
+    <line x1="435" y1="117" x2="453" y2="117" marker-end="url(#arrK6)"/>
+    <path d="M385,70 C385,80 320,80 290,72" stroke-dasharray="4 3" marker-end="url(#arrK6)"/>
+  </g>
+  <text x="300" y="92" font-size="12" class="muted">si falla, volver a editar</text>
+</svg>
+<figcaption>El ciclo de un cambio a rSim. Los pasos 3 a 5 se repiten hasta que la prueba sale bien.</figcaption>
+</figure>
+
+<ol class="steps">
+  <li><strong>Clonar el fork (una sola vez).</strong> Se recomienda dejarlo junto a <code>LARC-VSSS-2027</code>, no dentro:
+<pre><code>cd ~
+git clone https://github.com/Roborregos-VSSS2-2027/rSim.git
+cd rSim
+git fetch --tags          <span class="c"># asegura tener las etiquetas de versión</span></code></pre>
+  No usar <code>git clone --depth 1</code>: sin el historial completo, la versión sale mal (ver la pregunta sobre etiquetas en <a href="#q-install-tags">install.sh</a>).</li>
+
+  <li><strong>Crear una rama</strong> para el cambio. Una rama es una línea de trabajo separada: el código de <code>main</code> no cambia hasta que el equipo aprueba el cambio. Usar un nombre que describa el cambio:
+<pre><code>git switch main
+git pull                              <span class="c"># partir de lo más reciente</span>
+git switch -c ruedas-robot-real</code></pre></li>
+
+  <li><strong>Editar</strong> los archivos de <code>src/robosim/</code> (por ejemplo, <code>vssconfig.h</code>) con VS Code u otro editor.</li>
+
+  <li><strong>Compilar e instalar</strong> en el entorno de <code>team-template</code>. pip toma el código directamente de la carpeta, incluidos los cambios que aún no tienen commit:
+<pre><code>cd ~/LARC-VSSS-2027/team-template
+source .venv/bin/activate
+
+<span class="c"># macOS:</span>
+CMAKE_PREFIX_PATH="$(brew --prefix)" pip install --force-reinstall --no-deps ~/rSim
+
+<span class="c"># Linux o WSL:</span>
+pip install --force-reinstall --no-deps ~/rSim</code></pre>
+  Tarda de 10 a 60 segundos. Si termina con <code>Successfully installed rc-robosim-…</code>, compiló. Si aparece un error, ver el recuadro de abajo.</li>
+
+  <li><strong>Probar</strong>:
+<pre><code>python scripts/check_omni.py          <span class="c"># ¿el robot se mueve como debe?</span>
+python scripts/view_match.py --yellow still   <span class="c"># ¿el partido funciona?</span></code></pre>
+  Si se cambió alguna medida que también está en Python, actualizarla antes de probar (ver el <a href="#rsim-ejemplo">ejemplo</a>). Si algo no sale bien, volver al paso 3.</li>
+
+  <li><strong>Guardar el cambio (commit) y proponerlo (pull request).</strong> En la carpeta del fork:
+<pre><code>cd ~/rSim
+git status                            <span class="c"># revisar qué archivos cambiaron</span>
+git add src/robosim/vssconfig.h       <span class="c"># agregar solo los archivos modificados</span>
+git commit -m "Ajusta los ángulos de las ruedas al robot real"
+git push -u origin ruedas-robot-real</code></pre>
+  Después, en la página del fork en GitHub, aparece un botón <em>Compare &amp; pull request</em>. Un <strong>pull request</strong> es una propuesta para integrar la rama a <code>main</code>: otra persona del equipo la revisa y la acepta (<em>merge</em>).
+  <div class="callout warn"><span class="lbl">Cuidado · Qué no se sube</span><p>En <code>git status</code> no deben aparecer como “nuevos” (<em>untracked</em>) carpetas como <code>.venv/</code>, <code>_skbuild/</code> o <code>*.egg-info/</code>: son archivos generados al compilar o instalar. Por eso se agregan archivos uno por uno con <code>git add ruta/del/archivo</code>, en lugar de <code>git add -A</code> (que agrega todo).</p></div></li>
+
+  <li><strong>Crear una etiqueta de versión</strong>, cuando el pull request ya está en <code>main</code>. Las versiones siguen la forma <code>vMAYOR.MENOR.PARCHE</code>: para ajustes pequeños se sube el último número (<code>v1.3.0</code> → <code>v1.3.1</code>); para funciones nuevas, el de en medio (<code>v1.4.0</code>).
+<pre><code>git switch main
+git pull
+git tag v1.3.1
+git push origin v1.3.1</code></pre>
+  Este paso es <strong>obligatorio</strong>: sin etiquetas, la instalación falla (ver <a href="#q-install-tags">install.sh</a>).</li>
+
+  <li><strong>Avisar al equipo</strong> para que cada quien vuelva a correr <code>./install.sh</code> en su <code>team-template</code>. El script descarga y compila la versión más reciente de <code>main</code> del fork. Si el cambio también modificó archivos de <code>team-template</code> (por ejemplo, <code>robot.py</code>), esos cambios van en un pull request aparte en <code>LARC-VSSS-2027</code>, y todos hacen <code>git pull</code>.</li>
+</ol>
+
+<div class="callout note"><span class="lbl">Nota · Leer un error de compilación</span>
+<p>Si la compilación falla, pip imprime mucho texto. Lo importante está en la <strong>primera línea que contiene <code>error:</code></strong>. Indica el archivo, la línea y el problema, por ejemplo <code>vssconfig.h:140:9: error: expected ';'</code> (falta un punto y coma en la línea 140). Los errores que vienen después suelen ser consecuencia del primero. Para ver toda la salida: <code>pip install -v ... 2&gt;&amp;1 | tee build.log</code>, y buscar <code>error:</code> en <code>build.log</code>.</p>
+</div>
+<div class="callout warn"><span class="lbl">Cuidado · Python se cierra de golpe</span>
+<p>Si después de un cambio en C++ Python termina de repente, sin mensaje de error (o con <em>Segmentation fault</em>), casi siempre es un problema de memoria en C++: por ejemplo, usar una rueda que no existe (<code>nullptr</code>) o un índice fuera de un arreglo. Revisar los ciclos que recorren arreglos cuyo tamaño se haya cambiado.</p>
+</div>
+
+<h3 id="rsim-ejemplo">Ejemplo completo: cambiar los ángulos de las ruedas</h3>
+<p>Supongamos que el diseño mecánico coloca las ruedas en 45°, 180° y 315°.</p>
+<ol class="steps">
+  <li><strong>En rSim</strong> (rama nueva), editar <code>src/robosim/vssconfig.h</code>, dentro de la clase <code>Robot</code>:
+<pre><code>int OmniWheel0Angle = <span class="hl">45</span>;
+int OmniWheel1Angle = 180;
+int OmniWheel2Angle = <span class="hl">315</span>;</code></pre></li>
+  <li><strong>Compilar e instalar</strong> en el entorno de <code>team-template</code> (paso 4 del proceso).</li>
+  <li><strong>Actualizar las copias en Python</strong>, en <code>LARC-VSSS-2027</code>:
+    <ul>
+      <li><code>team_vsss/robot.py</code>: <code>ANGLES_OMNI = (45, 180, 315)</code></li>
+      <li><code>scripts/check_omni.py</code>: <code>ANGLES = [45, 180, 315]</code></li>
+    </ul></li>
+  <li><strong>Probar</strong> con <code>check_omni.py</code>: los movimientos “did” y “expected” deben coincidir como antes. Si solo se cambiara uno de los dos lados (C++ o Python), la prueba lo delataría: el robot se movería en una dirección distinta a la pedida.</li>
+  <li><strong>Commits:</strong> uno en el fork de rSim (y su etiqueta, al integrarse) y otro en <code>LARC-VSSS-2027</code> con los cambios de Python.</li>
+</ol>
+<div class="table-wrap"><table>
+<tr><th>Si se cambia en <code>vssconfig.h</code>…</th><th>…también cambiar</th></tr>
+<tr><td><code>OmniWheel*Angle</code></td><td><code>ANGLES_OMNI</code> (robot.py), <code>ANGLES</code> (check_omni.py)</td></tr>
+<tr><td><code>WheelRadius</code></td><td><code>WHEEL_RADIUS</code> (robot.py), <code>R</code> (check_omni.py)</td></tr>
+<tr><td><code>Radius</code> o <code>WheelThickness</code></td><td><code>CENTRAL_DIST_WHEEL</code> (robot.py), <code>L</code> (check_omni.py). El tamaño del dibujo del robot está fijo en rSoccer y no cambia.</td></tr>
+<tr><td><code>WheelMotorMaxRPM</code></td><td><code>MAX_RPM</code> (robot.py)</td></tr>
+<tr><td>Masas, torque, fricción</td><td>Nada en Python: solo afectan la física.</td></tr>
+</table></div>
+</section>
+
+<!-- ================================================================== -->
+<section id="equipo">
+<h2><span class="num">6</span>Trabajar en equipo con git</h2>
+<p><strong>git</strong> guarda el historial de cambios del código; <strong>GitHub</strong> lo comparte en internet. Conceptos mínimos:</p>
+<dl class="gloss">
+  <dt>Repositorio</dt><dd>Una carpeta de proyecto con su historial. El equipo tiene dos: <code>LARC-VSSS-2027</code> (código del equipo) y el fork de <code>rSim</code>.</dd>
+  <dt>Commit</dt><dd>Una “foto” guardada de los cambios, con un mensaje que los describe.</dd>
+  <dt>Rama (branch)</dt><dd>Una línea de trabajo separada. <code>main</code> es la principal y siempre debe funcionar.</dd>
+  <dt>Push / pull</dt><dd>Subir los commits propios a GitHub / bajar los de los demás.</dd>
+  <dt>Pull request (PR)</dt><dd>Propuesta en GitHub para integrar una rama a <code>main</code>, que otra persona revisa.</dd>
+  <dt>Etiqueta (tag)</dt><dd>Un nombre fijo para un commit, usado para marcar versiones (<code>v1.3.0</code>).</dd>
+</dl>
+<h4>El flujo diario</h4>
+<pre><code>cd ~/LARC-VSSS-2027
+git switch main &amp;&amp; git pull                <span class="c"># 1. partir de lo más reciente</span>
+git switch -c nombre-del-cambio            <span class="c"># 2. rama propia</span>
+<span class="c"># ... editar y probar ...</span>
+git status                                 <span class="c"># 3. revisar qué cambió</span>
+git add team-template/team_vsss/robot.py   <span class="c"># 4. agregar los archivos modificados</span>
+git commit -m "Describe el cambio en una línea"
+git push -u origin nombre-del-cambio       <span class="c"># 5. subir la rama y abrir el pull request en GitHub</span></code></pre>
+<p><strong>Conflictos:</strong> si dos personas cambian las mismas líneas, git no sabe cuál conservar y marca el archivo con bloques <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</code>, <code>=======</code> y <code>&gt;&gt;&gt;&gt;&gt;&gt;&gt;</code>. Hay que editar el archivo, dejar la versión correcta (a veces, ambas partes), borrar los marcadores, y después <code>git add</code> y <code>git commit</code>. Es frecuente en <code>strategies/__init__.py</code>, cuando dos personas registran estrategias a la vez: la solución suele ser conservar las dos líneas.</p>
+</section>
+
+<!-- ================================================================== -->
+<section id="problemas">
+<h2><span class="num">7</span>Problemas frecuentes</h2>
+<div class="table-wrap"><table>
+<tr><th>Síntoma</th><th>Causa probable</th><th>Solución</th></tr>
+<tr><td><code>ModuleNotFoundError: No module named 'team_vsss'</code> (o <code>robosim</code>, <code>rsoccer_gym</code>)</td><td>El entorno virtual no está activo.</td><td><code>source .venv/bin/activate</code> dentro de <code>team-template</code>.</td></tr>
+<tr><td><code>error: externally-managed-environment</code></td><td><code>pip</code> se usó fuera del entorno virtual.</td><td>Activar el <code>.venv</code> primero.</td></tr>
+<tr><td><code>permission denied: ./install.sh</code></td><td>El archivo perdió el permiso de ejecución.</td><td><code>bash install.sh</code>, o <code>chmod +x install.sh</code>.</td></tr>
+<tr><td><code>/usr/bin/env: 'bash\r'</code></td><td>El script tiene finales de línea de Windows (se clonó en Windows, no en WSL).</td><td>Clonar el repositorio dentro de Ubuntu (WSL), en <code>~</code>.</td></tr>
+<tr><td><code>Repository not found</code>, o git pide contraseña</td><td>Sin acceso a la organización o sin autenticarse.</td><td>Aceptar la invitación de GitHub; <code>gh auth login</code>.</td></tr>
+<tr><td><code>rSim was installed as version 0.1.devN</code></td><td>El fork no tiene etiquetas de versión.</td><td>Crear una etiqueta en el fork (<a href="#rsim-flujo">paso 7</a>) y volver a correr <code>install.sh</code>.</td></tr>
+<tr><td><code>Compatibility with CMake &lt; 3.5 has been removed</code></td><td>Se está compilando el rSim original, no el del fork (que trae una versión de pybind11 más nueva).</td><td>Revisar <code>RSIM_URL</code> y que el fork tenga sus cambios en <code>main</code>.</td></tr>
+<tr><td><code>Could NOT find ODE</code></td><td>Falta ODE, o (en macOS) CMake no sabe dónde buscarlo.</td><td>Correr <code>install.sh</code>; al compilar a mano en macOS, anteponer <code>CMAKE_PREFIX_PATH="$(brew --prefix)"</code>.</td></tr>
+<tr><td><code>TypeError: ... unexpected keyword argument 'omni_blue'</code></td><td>Está instalado un rSim sin el robot omni.</td><td>Volver a correr <code>install.sh</code>.</td></tr>
+<tr><td>Cambié el C++ y no veo el cambio</td><td>No se recompiló, o se instaló en otro entorno.</td><td>Paso 4 del proceso de rSim, con el <code>.venv</code> de <code>team-template</code> activo.</td></tr>
+<tr><td>Python se cierra de golpe</td><td>Error de memoria en C++.</td><td>Revisar el último cambio en C++ (capítulo 5).</td></tr>
+<tr><td><code>invalid choice: 'mia'</code> o <code>NameError</code></td><td>Estrategia no registrada, o registrada sin <code>import</code>.</td><td>Revisar <code>strategies/__init__.py</code>.</td></tr>
+<tr><td><code>KeyError</code> en <code>_get_commands</code></td><td>Un <code>Command</code> con un <code>id</code> de robot que no existe.</td><td>Usar los <code>id</code> de <code>world.mine</code>.</td></tr>
+<tr><td>No aparece la ventana</td><td>macOS: quedó detrás de otras ventanas. WSL: sin soporte de ventanas.</td><td>Buscarla en el Dock; o usar <code>--no-window</code>.</td></tr>
+<tr><td>El robot gira sin control o al revés</td><td>Mezcla de grados y radianes.</td><td><code>Command.w</code> en rad/s; <code>theta</code> y <code>Thing.w</code> vienen en grados.</td></tr>
+<tr><td>Todos los partidos quedan 0-0 con <code>ball_stuck</code></td><td>Dos estrategias iguales se traban empujando la pelota una contra otra.</td><td>Es normal. Probar con <code>--yellow still</code>.</td></tr>
+<tr><td><code>ODE Message 3: LCP internal error</code></td><td>Aviso numérico de ODE en un choque difícil.</td><td>Ocasional e inofensivo.</td></tr>
+</table></div>
+</section>
+
+<!-- ================================================================== -->
+<section id="preguntas">
+<h2><span class="num">8</span>Índice de preguntas</h2>
+<p>Todas las preguntas del código, en orden de lectura. Cada enlace lleva a su respuesta.</p>
+<div class="table-wrap"><table class="qindex">
+<tr><th>Archivo</th><th>Pregunta</th></tr>
+<tr><td>install.sh</td><td><a href="#q-install-set">What does set -euo pipefail do?</a></td></tr>
+<tr><td>install.sh</td><td><a href="#q-install-venv">Why do we need a virtual environment?</a></td></tr>
+<tr><td>install.sh</td><td><a href="#q-install-tags">Why does the version depend on git tags?</a></td></tr>
+<tr><td>robot.py</td><td><a href="#q-robot-radii">Why are the two radii different?</a></td></tr>
+<tr><td>robot.py</td><td><a href="#q-robot-angles">Are these angles the same as in our real robot?</a></td></tr>
+<tr><td>robot.py</td><td><a href="#q-robot-how">How does this work?</a></td></tr>
+<tr><td>robot.py</td><td><a href="#q-robot-two">Why do we define the two kinds of movement?</a></td></tr>
+<tr><td>robot.py</td><td><a href="#q-robot-for">How does this single-line for work?</a></td></tr>
+<tr><td>robot.py</td><td>TASK: Make an official documentation of the kinematics → <a href="#robot-omni">capítulo 3</a> y <a href="#f-robot">robot.py</a></td></tr>
+<tr><td>simulator.py</td><td><a href="#q-sim-mods">What modifications does this add to the original rSim?</a></td></tr>
+<tr><td>simulator.py</td><td><a href="#q-sim-if">Why add a conditional here, and how does if/else work in a single line?</a></td></tr>
+<tr><td>world.py</td><td><a href="#q-world-libs">What do these libraries do?</a></td></tr>
+<tr><td>world.py</td><td><a href="#q-world-colon">What does the : after the parameter do?</a></td></tr>
+<tr><td>world.py</td><td><a href="#q-world-arrow">What is the -&gt; for?</a></td></tr>
+<tr><td>world.py</td><td><a href="#q-world-helper">What does this helper function do?</a></td></tr>
+<tr><td>match.py</td><td><a href="#q-match-star">What is the ** doing inside the curly braces?</a></td></tr>
+<tr><td>match.py</td><td><a href="#q-match-sim">Why can't we just use the simulator that VSSBaseEnv created?</a></td></tr>
+<tr><td>match.py</td><td><a href="#q-match-dict">What is a dictionary, and why is its key a pair (team, id)?</a></td></tr>
+<tr><td>match.py</td><td><a href="#q-match-theta">Why do we need the robot's theta to convert the command?</a></td></tr>
+<tr><td>match.py</td><td><a href="#q-match-180">Why do yellow robots start with theta=180?</a></td></tr>
+<tr><td>match.py</td><td><a href="#q-match-accel">What would happen to the robot if we removed this function?</a></td></tr>
+<tr><td>match.py</td><td><a href="#q-match-mod">What do // and % compute here?</a></td></tr>
+<tr><td>strategies/__init__.py</td><td><a href="#q-strat-import">Why must a strategy be imported before it can be added to the dictionary?</a></td></tr>
+<tr><td>still.py</td><td><a href="#q-still-wall">Why does a "still" robot behave like a wall instead of being pushed?</a></td></tr>
+<tr><td>basic.py</td><td><a href="#q-basic-kp">What does a proportional controller do, and what happens if KP is too big?</a></td></tr>
+<tr><td>basic.py</td><td><a href="#q-basic-angle">Why do we add 180, take % 360 and then subtract 180?</a></td></tr>
+<tr><td>basic.py</td><td><a href="#q-basic-diff">Why does a differential robot need to turn before moving?</a></td></tr>
+<tr><td>basic.py</td><td><a href="#q-basic-min">What does min(..., key=lambda ...) do?</a></td></tr>
+<tr><td>basic.py</td><td><a href="#q-basic-behind">What is the 'behind' point, and why 8 cm?</a></td></tr>
+<tr><td>view_match.py</td><td><a href="#q-view-argparse">What is argparse for?</a></td></tr>
+<tr><td>view_match.py</td><td><a href="#q-view-try">What do try / except / finally do here?</a></td></tr>
+<tr><td>view_match.py</td><td><a href="#q-view-reset">Why do we call env.reset() after every goal?</a></td></tr>
+<tr><td>check_omni.py</td><td><a href="#q-check-ramp">Why do we increase the speed gradually (a "ramp")?</a></td></tr>
+</table></div>
+</section>
+
+<!-- ================================================================== -->
+<section id="glosario">
+<h2><span class="num">9</span>Glosario</h2>
+<dl class="gloss">
+  <dt>Cinemática inversa</dt><dd>Cálculo que convierte el movimiento deseado del robot en la velocidad de cada rueda.</dd>
+  <dt>Compilar</dt><dd>Traducir código fuente (C++) a un programa que la computadora puede ejecutar.</dd>
+  <dt>Controlador proporcional</dt><dd>Regla de control en la que la acción es proporcional al error: más lejos, más rápido.</dd>
+  <dt>Dataclass</dt><dd>Clase de Python que sobre todo guarda datos; <code>@dataclass</code> escribe su <code>__init__</code> automáticamente.</dd>
+  <dt>Entorno (environment)</dt><dd>En rSoccer y Gymnasium, un objeto con <code>reset()</code> y <code>step()</code> que representa una simulación. <code>MatchVSS</code> es uno.</dd>
+  <dt>Entorno virtual (.venv)</dt><dd>Carpeta con un Python y librerías propias de un proyecto.</dd>
+  <dt>Fork</dt><dd>Copia de un repositorio de GitHub en otra cuenta u organización, que se puede modificar libremente.</dd>
+  <dt>Frame</dt><dd>En rSoccer, el estado del partido en un instante: posición y velocidad de la pelota y de cada robot.</dd>
+  <dt>Herencia</dt><dd>Crear una clase a partir de otra, recibiendo sus métodos y cambiando solo algunos.</dd>
+  <dt>Marco de referencia</dt><dd>Desde dónde se describe una posición o velocidad: la cancha (global) o el robot (local).</dd>
+  <dt>ODE</dt><dd><em>Open Dynamics Engine</em>, el motor de física que usa rSim.</dd>
+  <dt>pip</dt><dd>El instalador de librerías de Python.</dd>
+  <dt>pybind11</dt><dd>Herramienta de C++ que permite usar código de C++ desde Python.</dd>
+  <dt>Rueda omnidireccional</dt><dd>Rueda con rodillos en su borde, que empuja en su dirección de giro y se desliza de lado.</dd>
+  <dt>Saturación</dt><dd>Pedir más de lo que un motor puede dar (velocidad o torque máximos).</dd>
+  <dt>Script</dt><dd>Archivo con una lista de comandos o instrucciones que se ejecuta como un programa.</dd>
+  <dt>Torque</dt><dd>“Fuerza de giro” de un motor (N·m). Su máximo limita qué tan rápido acelera una rueda.</dd>
+  <dt>Wheel (.whl)</dt><dd>Paquete de Python ya compilado, listo para instalar sin compilador.</dd>
+</dl>
+<hr>
+<p class="small">Referencias: rSim original (<code>github.com/robocin/rSim</code>), rSoccer (<code>github.com/robocin/rSoccer</code>, commit <code>3adf7c3</code>), fork del equipo (<code>github.com/Roborregos-VSSS2-2027/rSim</code>, versión <code>v1.3.0</code>). Python 3.12, gymnasium 1.4, pygame 2.6.</p>
+</section>
+
+</main>
+</div>
+<script>
+(function () {
+  var root = document.documentElement, btn = document.getElementById('themeToggle');
+  try { var t = localStorage.getItem('guia-tema'); if (t) root.setAttribute('data-theme', t); } catch (e) {}
+  btn.addEventListener('click', function () {
+    var cur = root.getAttribute('data-theme');
+    var dark = cur ? cur === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+    var next = dark ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    try { localStorage.setItem('guia-tema', next); } catch (e) {}
+  });
+})();
+</script>
+</body>
+</html>
