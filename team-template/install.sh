@@ -5,7 +5,7 @@
 #   ./install.sh                                # compiles our rSim on this machine
 #   RSIM_WHEEL=<URL or path .whl> ./install.sh  # uses an already compiled rSim (faster)
 #
-# Works on macOS and on Ubuntu 24.04 (also inside WSL2 on Windows).
+# Works on macOS and on Ubuntu 24.04 or newer (also inside WSL2 on Windows).
 # When it finishes:  source .venv/bin/activate && python scripts/view_match.py
 
 # What does set -euo pipefail do?
@@ -30,10 +30,24 @@ case "$(uname -s)" in
     fi
     ;;
   Linux)
-    # Meant for Ubuntu 24.04 (native or WSL2).
+    # Ubuntu (native or WSL2). We always use Python 3.12: it is the version
+    # rSim, pybind11 and pygame are tested with.
     sudo apt-get update
-    sudo apt-get install -y python3.12 python3.12-venv git build-essential cmake curl
-    PY=python3.12
+    sudo apt-get install -y git build-essential cmake curl
+    if apt-cache show python3.12-venv >/dev/null 2>&1; then
+      # Ubuntu 24.04: Python 3.12 comes from the system repositories.
+      sudo apt-get install -y python3.12 python3.12-venv python3.12-dev
+      PY=python3.12
+    else
+      # Newer Ubuntu (26.04...) ships another Python version. We download a
+      # separate Python 3.12 with uv; the system Python is not touched.
+      # Why not just use the Python that comes with the system?
+      echo "    This Ubuntu has no Python 3.12 package: downloading one with uv..."
+      export PATH="$HOME/.local/bin:$PATH"
+      command -v uv >/dev/null || curl -LsSf https://astral.sh/uv/install.sh | sh
+      uv python install 3.12
+      PY="$(uv python find 3.12)"
+    fi
     if [ -z "$RSIM_WHEEL" ] && [ ! -f /usr/local/include/ode/ode.h ]; then
       echo "    Compiling ODE 0.16.6 with libccd (only the first time)..."
       tmp="$(mktemp -d)"

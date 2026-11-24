@@ -334,7 +334,7 @@ cd LARC-VSSS-2027/team-template</code></pre>
 <ol class="steps">
   <li><strong>Instalar WSL con Ubuntu 24.04.</strong> Abrir PowerShell <em>como administrador</em> (clic derecho sobre PowerShell → “Ejecutar como administrador”) y correr:
 <pre><code>wsl --install -d Ubuntu-24.04</code></pre>
-  Es importante pedir <strong>24.04</strong>: el instalador del equipo espera Python 3.12, que es el de esa versión. Reiniciar la computadora si lo pide.</li>
+  Se recomienda <strong>24.04</strong> porque trae Python 3.12, la versión que usa el equipo. Con versiones más nuevas (26.04 o posteriores) también funciona: el instalador descarga por su cuenta un Python 3.12 aparte. Reiniciar la computadora si lo pide.</li>
   <li><strong>Abrir Ubuntu</strong> desde el menú Inicio (aparece como “Ubuntu 24.04”). La primera vez pide crear un <strong>usuario y contraseña de Linux</strong>. Anotar la contraseña: se pedirá cada vez que un comando use <code>sudo</code> (permisos de administrador). Al escribirla no aparecen caracteres en pantalla; es normal.</li>
   <li><strong>Actualizar Ubuntu e instalar git y gh</strong>, dentro de la ventana de Ubuntu:
 <pre><code>sudo apt update &amp;&amp; sudo apt upgrade -y
@@ -356,12 +356,13 @@ cd LARC-VSSS-2027/team-template</code></pre>
   VS Code se abre “conectado” a Ubuntu (lo indica abajo a la izquierda: <em>WSL: Ubuntu-24.04</em>). Su terminal integrada ya es la de Ubuntu. Para que VS Code use el Python del proyecto: <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd> → <em>Python: Select Interpreter</em> → elegir el que dice <code>.venv</code>.</li>
 </ol>
 <div class="callout note"><span class="lbl">Nota · Ruta sin verificar</span>
-<p>La parte de Linux del instalador está escrita para Ubuntu 24.04 pero todavía no ha sido probada por el equipo. Si algo falla, copiar el mensaje de error completo y reportarlo para corregir esta guía y el script.</p>
+<p>El instalador ya fue probado en Ubuntu 24.04 y 26.04 instalados desde cero, pero todavía no dentro de WSL. Si algo falla, copiar el mensaje de error completo y reportarlo para corregir esta guía y el script.</p>
 </div>
 
-<h3 id="inst-linux">Linux (Ubuntu 24.04)</h3>
-<span class="badge no">sin verificar</span>
+<h3 id="inst-linux">Linux (Ubuntu 24.04 o más nuevo)</h3>
+<span class="badge ok">verificado</span>
 <p>Igual que WSL a partir del paso 3: instalar git y gh con <code>apt</code>, clonar el repositorio en <code>~</code> y correr <code>./install.sh</code>. El script usa <code>sudo apt-get</code> para las dependencias y compila ODE la primera vez.</p>
+<p>El proyecto usa siempre <strong>Python 3.12</strong>. Ubuntu 24.04 lo trae en sus repositorios, así que el script lo instala con <code>apt</code>. Las versiones más nuevas de Ubuntu (por ejemplo 26.04, que trae Python 3.14) ya no lo incluyen; en ese caso el script instala <a href="https://docs.astral.sh/uv/">uv</a>, una herramienta que descarga un Python 3.12 independiente en la carpeta personal, sin tocar el Python del sistema. En la terminal aparece el aviso <code>This Ubuntu has no Python 3.12 package: downloading one with uv...</code>; es normal.</p>
 
 <h3 id="inst-usar">Usarlo día a día</h3>
 <h4>1. Activar el entorno virtual</h4>
@@ -595,8 +596,17 @@ packages = ["team_vsss", "team_vsss.strategies"]</code></pre>
   </details>
 </div>
 
+<div class="question" id="q-install-syspy">
+  <div class="qhead">Why not just use the Python that comes with the system? <span class="where">install.sh · línea 44</span></div>
+  <details><summary>Ver respuesta</summary>
+  <p>Porque cada versión de Python es un poco distinta y no todas las librerías funcionan con todas las versiones. El proyecto depende de piezas compiladas (rSim con pybind11, pygame, numpy) que el equipo ya probó con <strong>Python 3.12</strong>. Una versión más nueva, como la 3.14 de Ubuntu 26.04, puede no tener todavía paquetes listos de pygame (pip intentaría compilarlo y fallaría) o puede cambiar detalles internos que usa pybind11.</p>
+  <p>Usar la misma versión en todas las computadoras evita el clásico “en mi máquina sí funciona”: si a alguien le falla algo, el resto del equipo puede reproducirlo.</p>
+  <p>El Python que descarga uv vive aparte (en <code>~/.local/share/uv/python</code>), así que no interfiere con el del sistema, que Ubuntu necesita para funcionar. El entorno virtual <code>.venv</code> se crea a partir de ese Python 3.12, y desde ahí todo funciona igual que en Ubuntu 24.04.</p>
+  </details>
+</div>
+
 <div class="question" id="q-install-venv">
-  <div class="qhead">Why do we need a virtual environment? <span class="where">install.sh · línea 54</span></div>
+  <div class="qhead">Why do we need a virtual environment? <span class="where">install.sh · línea 68</span></div>
   <details><summary>Ver respuesta</summary>
   <p>Un entorno virtual (<code>.venv</code>) es una carpeta con su propia copia de Python y sus propias librerías, separada del resto de la computadora. Se necesita por varias razones:</p>
   <ul>
@@ -609,7 +619,7 @@ packages = ["team_vsss", "team_vsss.strategies"]</code></pre>
 </div>
 
 <div class="question" id="q-install-tags">
-  <div class="qhead">Why does the version depend on git tags? <span class="where">install.sh · línea 70</span></div>
+  <div class="qhead">Why does the version depend on git tags? <span class="where">install.sh · línea 84</span></div>
   <details><summary>Ver respuesta</summary>
   <p>rSim no tiene su número de versión escrito en ningún archivo. Una herramienta llamada <strong>setuptools_scm</strong> lo calcula al compilar, a partir de git: busca la <strong>etiqueta</strong> (<em>tag</em>) más reciente, como <code>v1.3.0</code>, y la usa como versión. Si hay commits después de la etiqueta, agrega algo como <code>1.3.1.dev2</code>.</p>
   <p>Si el repositorio no tiene ninguna etiqueta, setuptools_scm usa <code>0.1.devN</code>. Eso es un problema: rSoccer exige <code>rc-robosim</code> versión 1.2 o mayor. Con <code>0.1</code>, pip cree que rSim no está instalado e intenta descargar el rSim original de internet, que además no compila con las herramientas actuales.</p>
@@ -1281,6 +1291,7 @@ git push -u origin nombre-del-cambio       <span class="c"># 5. subir la rama y 
 <tr><td><code>ModuleNotFoundError: No module named 'team_vsss'</code> (o <code>robosim</code>, <code>rsoccer_gym</code>)</td><td>El entorno virtual no está activo.</td><td><code>source .venv/bin/activate</code> dentro de <code>team-template</code>.</td></tr>
 <tr><td><code>error: externally-managed-environment</code></td><td><code>pip</code> se usó fuera del entorno virtual.</td><td>Activar el <code>.venv</code> primero.</td></tr>
 <tr><td><code>permission denied: ./install.sh</code></td><td>El archivo perdió el permiso de ejecución.</td><td><code>bash install.sh</code>, o <code>chmod +x install.sh</code>.</td></tr>
+<tr><td><code>No se ha podido localizar el paquete python3.12</code> (<code>Unable to locate package python3.12</code>)</td><td>Versión de Ubuntu más nueva que 24.04 con una copia vieja de <code>install.sh</code>.</td><td>Actualizar el repositorio (<code>git pull</code>) y volver a correr <code>./install.sh</code>: la versión actual descarga Python 3.12 con uv.</td></tr>
 <tr><td><code>/usr/bin/env: 'bash\r'</code></td><td>El script tiene finales de línea de Windows (se clonó en Windows, no en WSL).</td><td>Clonar el repositorio dentro de Ubuntu (WSL), en <code>~</code>.</td></tr>
 <tr><td><code>Repository not found</code>, o git pide contraseña</td><td>Sin acceso a la organización o sin autenticarse.</td><td>Aceptar la invitación de GitHub; <code>gh auth login</code>.</td></tr>
 <tr><td><code>rSim was installed as version 0.1.devN</code></td><td>El fork no tiene etiquetas de versión.</td><td>Crear una etiqueta en el fork (<a href="#rsim-flujo">paso 7</a>) y volver a correr <code>install.sh</code>.</td></tr>
@@ -1305,6 +1316,7 @@ git push -u origin nombre-del-cambio       <span class="c"># 5. subir la rama y 
 <div class="table-wrap"><table class="qindex">
 <tr><th>Archivo</th><th>Pregunta</th></tr>
 <tr><td>install.sh</td><td><a href="#q-install-set">What does set -euo pipefail do?</a></td></tr>
+<tr><td>install.sh</td><td><a href="#q-install-syspy">Why not just use the Python that comes with the system?</a></td></tr>
 <tr><td>install.sh</td><td><a href="#q-install-venv">Why do we need a virtual environment?</a></td></tr>
 <tr><td>install.sh</td><td><a href="#q-install-tags">Why does the version depend on git tags?</a></td></tr>
 <tr><td>robot.py</td><td><a href="#q-robot-radii">Why are the two radii different?</a></td></tr>

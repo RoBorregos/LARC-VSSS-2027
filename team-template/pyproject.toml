@@ -20,4 +20,4 @@ dependencies = [
 ]
 
 [tool.setuptools]
-packages = ["team_vsss", "team_vsss.strategies"]
+packages = ["team_vsss", "team_vsss.strategies", "team_vsss.planning"]
