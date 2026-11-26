@@ -9,15 +9,7 @@ while True:
     
     
     gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)    
-    
     ret, th = cv.threshold(gray, 110, 255, cv.THRESH_BINARY)
-    
-    
-    
-    
-    
-
-    
     
     
     
