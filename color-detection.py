@@ -12,7 +12,7 @@ def obtener_limites(color):
         return np.array([100, 100, 100]), np.array([140, 255, 255])
 """
 
-naranja_bajo = np.array([10, 100, 20])
+naranja_bajo = np.array([5, 120, 120])
 naranja_alto = np.array([25, 255, 255])
 
 
