@@ -1,16 +1,15 @@
-
 import cv2 as cv
 import numpy as np
 
-
 def pelota():
-     f
+    f
      return True
 
-
 def calibration():
-     f
-
+    img = np.zeros((300, 512, 3), np.uint8)
+    cv.namedWindow("Calibration")
+    cv.createTrackbar("Slider", "Calibration", 0, 255, lambda x: None)
+    return img
 
 
 #naranja harcodeado
@@ -23,30 +22,24 @@ h_alto = min(h+10, 179)
 
 
 video = cv.VideoCapture(2)
-
+img = calibration()
 while (True):
     
     ret, frame = video.read()
-    if not ret:
+#condicion de cierre
+    if not ret or (cv.waitKey(1) & 0xFF == ord('q')):
             break
+
 
     frame_hsv = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
 
-#colores con rango
-
-    
+#colores con rango    
     hsv_naranja_lower_bound = (np.uint8([h_bajo, 100, 100]))
     hsv_naranja_upper_bound = (np.uint8([h_alto, 255, 255]))
 
     frame_naranja = cv.inRange(frame_hsv, hsv_naranja_lower_bound, hsv_naranja_upper_bound)
     
-    cv.imshow('Frame', frame)
-    cv.imshow('Naranja', frame_naranja)
-
-
-    if cv.waitKey(1) & 0xFF == ord('q'):
-        break
-
+    cv.imshow('Calibration', img)
     
 
 video.release()
